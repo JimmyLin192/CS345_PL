@@ -1,0 +1,19 @@
+parse(TokenList, AST) --> phrase(program, TokenList, []);
+
+program --> declaration, [;], program.
+program --> assignment, [;], program.
+program --> declAssignment, [;], program.
+program --> retStatement, [.].
+
+declaration --> [var], id.
+assignment --> id, [<-], base.
+declAssignment --> [var], id, [<-], base.
+retStatement --> [return], base.
+
+expression --> (expression, addOp) | term.
+term --> (term, mulOp) | factor.
+factor --> num(A).
+% base --> num(A). 
+addOp --> [+] | [-].
+mulOp --> [*] | [/].
+num(A) --> [A], { number(A) }.

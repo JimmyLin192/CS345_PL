@@ -1,26 +1,26 @@
 parse(TokenList, AST) :- phrase(program(AST), TokenList, []).
 /* Keyword Declarations */
-reserved    ([var, return, function]).          % reserved words
-operators   (['<-', '.', ';', '(', ')', '{', '}']). % assign, statement terminator, parentheses
-mathOp      (['+', '-', '*', '/']).     % mathOp
-logOp       (['&&', '||']).              % logOp 
-comparators (['==', '<', '>', '<=', '>=', '!=']).   % comparators
-condWords   (['if', 'else', 'then', 'endif']).     % conditions
-loopWords   (['while', 'do', 'done']).    % loop
+reserved([var, return, function]).          % reserved words
+operators(['<-', '.', ';', '(', ')', '{', '}']). % assign, statement terminator, parentheses
+mathOp(['+', '-', '*', '/']).     % mathOp
+logOp(['&&', '||']).              % logOp 
+comparators(['==', '<', '>', '<=', '>=', '!=']).   % comparators
+condWords(['if', 'else', 'then', 'endif']).     % conditions
+loopWords(['while', 'do', 'done']).    % loop
 
 /* Program recursive definition */
 program(prog(retStatement(VALUE))) --> [return], base(VALUE), ['.'].  % terminating statement
-program(prog(STATMENT, PROGRAM)) --> statement(STATEMENT), [';'], program(PROGRAM).
-statement(declaration(NAME), PROGRAM) --> [var], identity(NAME).
-statement(assignment(NAME, VALUE), PROGRAM) --> identity(NAME), ['<-'], base(VALUE).
-statement(decAssignment(NAME, VALUE), PROGRAM) --> [var], identity(NAME), ['<-'], base(VALUE).
+program(prog(STATEMENT, PROGRAM)) --> statement(STATEMENT), [';'], program(PROGRAM).
+statement(declaration(NAME)) --> [var], identity(NAME).
+statement(assignment(NAME, VALUE)) --> identity(NAME), ['<-'], base(VALUE).
+statement(decAssignment(NAME, VALUE)) --> [var], identity(NAME), ['<-'], base(VALUE).
 
-statement(funcDecl(FUNC_NAME, FUNC_ARGS, FUNC_PROGRAM), PROGRAM) --> 
+statement(funcDecl(FUNC_NAME, FUNC_ARGS, FUNC_PROGRAM)) --> 
               [function], identity(FUNC_NAME), ['('], FUNC_ARGS, [')'],  % function signature
               ['{'], program(FUNC_PROGRAM), ['}'].                       % function body
-statement(conditional(COND, IF_BRANCH), PROGRAM) --> 
+statement(conditional(COND, IF_BRANCH)) --> 
               ['if'], condition(COND), ['then'], statementSeq(IF_BRANCH), ['endif'].
-statement(conditional(COND, IF_BRANCH, ELSE_BRANCH), PROGRAM) --> 
+statement(conditional(COND, IF_BRANCH, ELSE_BRANCH)) --> 
               ['if'], condition(COND), ['then'], statementSeq(IF_BRANCH), 
                                        ['else'], statementSeq(ELSE_BRANCH), ['endif'].
 statement(loop(COND, LOOP_BODY)) --> ['while'], condition(COND), ['do'], statementSeq(LOOP_BODY), ['done'].
@@ -37,7 +37,7 @@ logicals(LOG_OP) --> [LOG_OP], { logOp(LOGIC_OPERATORS), member(LOG_OP, LOGIC_OP
 
 /* Element-wise rule definition */
 base(NAME) --> identity(NAME) | numerics(NAME) | ['('], expression(NAME), [')'].
-base(FUNC_NAME, FUNC_ARG) --> identity(FUNC_NAME), ['('], base(FUNCT_ARG), [')'].  % func call
+base(FUNC_NAME, FUNC_ARG) --> identity(FUNC_NAME), ['('], base(FUNC_ARG), [')'].  % func call
 expression(EXP) --> term(EXP) | term(TERM), ['+'], left_assoc(EXP, TERM, addition) | term(TERM), ['-'], left_assoc(EXP, TERM, subtraction).
 term(TERM) --> factor(TERM) | factor(VALUE), ['*'], left_assoc(TERM, VALUE, multiplication) | factor(VALUE), ['/'], left_assoc(TERM, VALUE, division).
 

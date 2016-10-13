@@ -1,17 +1,12 @@
 parse(TokenList, AST) :- phrase(program(AST), TokenList, []).
-
 /* Keyword Declarations */
-keyword(['.', ';']).   % statement terminator
-keyword(['(', ')']).   % parentheses
-keyword(['{', '}']).   % brackets
-keyword(['<-']).       % assignment
-keyword(['+', '-']).   % addOp
-keyword(['*', '/']).   % mulOp
-keyword(['var', 'return']).           % reserved words
-keyword(['if', 'else', 'then']).     % conditions
-keyword(['while', 'do', 'done']).    % loop
-keyword(['&&', '||']).     % logOp
-keyword(['==', '<', '>', '<=', '>=', '!=']).  % comparator
+reserved([var, return]).          % reserved words
+operators(['<-', '.', ';', '(', ')', '{', '}']). % assign, statement terminator, parentheses
+mathOp(['+', '-', '*', '/']).     % mathOp
+logOp(['&&', '||']).              % logOp 
+comparators(['==', '<', '>', '<=', '>=', '!=']).   % comparators
+condWords(['if', 'else', 'then']).     % conditions
+loopWords(['while', 'do', 'done']).    % loop
 
 /* Program recursive definition */
 program(prog(declaration(NAME), PROGRAM)) --> [var], identity(NAME), [';'], program(PROGRAM).
@@ -22,21 +17,36 @@ program(prog(retStatement(VALUE))) --> [return], base(VALUE), ['.'].  % terminal
 base(NAME) --> identity(NAME) | numerics(NAME) | ['('], expression(NAME), [')'].
 expression(EXP) --> term(EXP) | term(TERM), ['+'], left_assoc(EXP, TERM, addition) | term(TERM), ['-'], left_assoc(EXP, TERM, subtraction).
 term(TERM) --> factor(TERM) | factor(VALUE), ['*'], left_assoc(TERM, VALUE, multiplication) | factor(VALUE), ['/'], left_assoc(TERM, VALUE, division).
+
 factor(FACTOR) --> base(FACTOR).
-identity(NAME) --> [NAME], { keyword(Keyword), \+ member(NAME, Keyword), \+ number(NAME) }.
-numerics(VALUE) --> [VALUE], { number(VALUE) }.
+identity(NAME) --> [NAME], { reserved(Keyword), \+ member(NAME, Keyword), 
+                             operators(Operator), \+ member(NAME, Operator),
+                             mathOp(MathOperator), \+ member(NAME, MathOperator),
+                             logOp(LogicOperator), \+ member(NAME, LogicOperator),
+                             comparators(Comparators), \+ member(NAME, Comparators),
+                             condWords(CondWords), \+ member(NAME, CondWords),
+                             loopWords(LoopWords), \+ member(NAME, LoopWords),
+                             \+ number(NAME) }.
+numerics(VALUE) --> [VALUE], { integer(VALUE) | float(VALUE) }.
+
 /* left_assoc for math compuation */
 % for every computational operators, 
 % the first rule is the terminal rule (not generating more non-terminal)
 % while the second rule is the recursive rule
 left_assoc(compute(addition,TERM_A,TERM_B), TERM_A, addition) --> term(TERM_B).
 left_assoc(EXP, TERM_A, addition) --> term(TERM_B), ['+'], left_assoc(EXP, compute(addition, TERM_A, TERM_B), addition).
+left_assoc(EXP, TERM_A, addition) --> term(TERM_B), ['-'], left_assoc(EXP, compute(addition, TERM_A, TERM_B), subtraction).
+
 left_assoc(compute(subtraction,TERM_A,TERM_B), TERM_A, subtraction) --> term(TERM_B).
 left_assoc(EXP, TERM_A, subtraction) --> term(TERM_B), ['-'], left_assoc(EXP, compute(subtraction, TERM_A, TERM_B), subtraction).
+left_assoc(EXP, TERM_A, subtraction) --> term(TERM_B), ['+'], left_assoc(EXP, compute(subtraction, TERM_A, TERM_B), addition).
 left_assoc(compute(multiplication,TERM_A,TERM_B), TERM_A, multiplication) --> factor(TERM_B).
 left_assoc(EXP, TERM_A, multiplication) --> term(TERM_B), ['*'], left_assoc(EXP, compute(multiplication, TERM_A, TERM_B), multiplication).
+left_assoc(EXP, TERM_A, multiplication) --> term(TERM_B), ['/'], left_assoc(EXP, compute(multiplication, TERM_A, TERM_B), division).
 left_assoc(compute(division,TERM_A,TERM_B), TERM_A, division) --> factor(TERM_B).
 left_assoc(EXP, TERM_A, division) --> term(TERM_B), ['/'], left_assoc(EXP, compute(division,TERM_A, TERM_B), division).
+left_assoc(EXP, TERM_A, division) --> term(TERM_B), ['*'], left_assoc(EXP, compute(division,TERM_A, TERM_B), multiplication).
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 evaluate(AST, Number) :- empty_assoc(VARIABLES), empty_assoc(FUNCTIONS), validate(AST, Number, VARIABLES, _, FUNCTIONS, _).
@@ -51,8 +61,7 @@ validate(X, OUTCOME, VAR, VAR, FUNC, FUNC) :- get_assoc(X, VAR, OUTCOME), OUTCOM
 validate(compute(addition, OPR_A, OPR_B), OUTCOME, VAR, VAR, FUNC, FUNC):- validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), OUTCOME is VAL_OPR_A + VAL_OPR_B.
 validate(compute(subtraction, OPR_A, OPR_B), OUTCOME, VAR, VAR, FUNC, FUNC):- validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), OUTCOME is VAL_OPR_A - VAL_OPR_B.
 validate(compute(multiplication, OPR_A, OPR_B), OUTCOME, VAR, VAR, FUNC, FUNC):- validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), OUTCOME is VAL_OPR_A * VAL_OPR_B.
-validate(compute(division, OPR_A, OPR_B), OUTCOME, VAR, VAR, FUNC, FUNC):- validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), OUTCOME is VAL_OPR_A / VAL_OPR_B.
-
+validate(compute(division, OPR_A, OPR_B), OUTCOME, VAR, VAR, FUNC, FUNC):- VAL_OPR_B \== 0, validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), OUTCOME is VAL_OPR_A / VAL_OPR_B.
 
 % validate the return statement
 validate(retStatement(NAME), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :- validate(NAME, OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC).

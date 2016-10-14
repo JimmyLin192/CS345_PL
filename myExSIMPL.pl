@@ -274,13 +274,13 @@ writeTestName(Name) :- write('['), write(Name), write(']').
 test(Name, Tokens, Expected) :- 
     \+ parse(Tokens, _), 
     Expected == 'parse_fail', 
-    ansi_format([faint, fg(cyan)], '[~w]: Pass - Parse Fail As Expected. \n', [Name]).
+    ansi_format([bold, fg(cyan)], '[~w]: Pass - Parse Fail As Expected. \n', [Name]).
 
 test(Name, Tokens, Expected) :- 
     parse(Tokens, AST), 
     \+ evaluate(AST, _),  
     ( Expected == 'eval_fail' | Expected == 'evaluate_fail'), 
-        ansi_format([faint, fg(cyan)], '[~w]: Pass - Evaluate Fail As Expected. \n', [Name]).
+        ansi_format([bold, fg(cyan)], '[~w]: Pass - Evaluate Fail As Expected. \n', [Name]).
 
 test(Name, Tokens, Expected) :- 
     parse(Tokens, AST), evaluate(AST, X), (
@@ -289,7 +289,7 @@ test(Name, Tokens, Expected) :-
             write(' Result: '), write(X), 
             write(', Expected: '), writeln(Expected) )  
      |  ( X == Expected, 
-        ansi_format([faint, fg(cyan)], '[~w]: Pass. \n', [Name])
+        ansi_format([bold, fg(cyan)], '[~w]: Pass. \n', [Name])
         )).
 
 test_PARSE_FAIL :-
@@ -379,6 +379,34 @@ test_ARITHMETIC :-
     test('T_ARITHMETIC_54', ['var', 'x', '<-', '(', 3, '*', 2, '*', 4, ')', ';', 'var', 'y', '<-', '(', 5, '+', 6, '+', 2, ')', ';' , 'var', 'z', '<-', '(', 3, '-', 4, '-', 2, ')', ';', 'return', '(', 'x', '/', 'y', '/', 'z', ')', '.'], -0.6153846153846154),
     writeln('').
 
+test_VARIABLE :-
+    writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
+    writeln('% Test Cases for VARIABLES'),
+    writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
+    test('T_VARS_EFAIL_01', [return,x,.] ,'eval_fail'),
+    test('T_VARS_EFAIL_02', [var,x,;,return,x,'.'] , 'eval_fail'),
+    test('T_VARS_EFAIL_03', [x,<-,1,;,return,x,'.'], 'eval_fail'),
+    test('T_VARS_EFAIL_04', [x,<-,1,;,return,1,'.'], 'eval_fail'),
+    test('T_VARS_EFAIL_05', [var,x,;,var,y,;,x,<-,1,;,return,'(',x,+,y,')','.'], 'eval_fail'),
+    test('T_VARS_EFAIL_06', [var,x,;,var,y,;,x,<-,a,;,y,<-,1000,;,x,<-,y,;,return,x,'.'], 'eval_fail'),
+    test('T_VARS_EFAIL_07', [var,x,;,var,y,;,x,<-,1,;,y,<-,a,;,x,<-,y,;,return,y,'.'], 'eval_fail'),
+    test('T_VARS_EFAIL_08', [var,a,;,var,b,;,a,<-,b,;,b,<-,37,;,return,a,'.'], 'eval_fail'),
+    test('T_VARS_11', [var,x,;,x,<-,1,;,return,x,'.'], 1),
+    test('T_VARS_12', [var,x,;,var,y,;,x,<-,1,;,y,<-,2,;,return,'(',x,+,y,')','.'] , 3),
+    test('T_VARS_13', [var,x,;,var,y,;,x,<-,'(',1,+,1,+,1,')',;,return,x,'.'], 3),
+    test('T_VARS_14', [var,x,;,var,y,;,var,z,;,x,<-,1,;,y,<-,2,;,z,<-,'(',x,+,y,')',;,return,z,'.'], 3),
+    test('T_VARS_15', [var,x,;,var,y,;,x,<-,1,;,y,<-,2,;,return,y,'.'], 2),
+    test('T_VARS_16', [var,x,;,var,y,;,x,<-,1,;,x,<-,2,;,return,x,'.'], 2),
+    test('T_VARS_17', [var,x,;,var,y,;,x,<-,1,;,y,<-,1000,;,x,<-,y,;,return,x,'.'] , 1000),
+    test('T_VARS_18', [var,x,;,var,y,;,x,<-,1,;,y,<-,1000,;,x,<-,y,;,y,<-,2,;,return,x,'.'], 1000),
+    test('T_VARS_19', [var,x,;,x,<-,'(','(',2,+,6,+,1,')',+,1,')',;,return,x,'.'] , 10),
+    test('T_VARS_20', [var,x,;,x,<-,'(','(',2,+,6,+,1,')',*,2,*,2,')',;,return,x,'.'], 36),
+    test('T_VARS_21', [var,a,;,var,b,;,a,<-,5,;,b,<-,'(',a,+,5,')',;,b,<-,'(',a,+,b,')',;,return,b,'.'], 15),
+    test('T_VARS_22', [var,a,;,var,b,;,b,<-,37,;,a,<-,30,;,return,b,'.'], 37),
+    test('T_VARS_23', [var,b,;,b,<-,37.1245,;,return,b,'.'], 37.1245),
+    writeln('').
+
+
 test_LOGIC :-
     writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
     writeln('% Test Cases for LOGIC'),
@@ -459,6 +487,7 @@ main :-
     test_EVAL_FAIL,
     test_PAREN,
     test_ARITHMETIC,
+    test_VARIABLE,
     test_LOGIC,
     test_IF_THEN,
     test_IF_THEN_ELSE,

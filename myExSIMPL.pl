@@ -267,19 +267,20 @@ validate(prog(PROGRAM, AST), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% TESTING COMPONENTS 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Reference: https://docs.google.com/document/d/1skDFXKI4ZRn14-Al5T6zraJLV6xaqFfmx-6oUQXXmyA/edit
 
 writeTestName(Name) :- write('['), write(Name), write(']').
 
 test(Name, Tokens, Expected) :- 
     \+ parse(Tokens, _), 
     Expected == 'parse_fail', 
-    ansi_format([conceal, fg(cyan)], '[~w]: Pass - Parse Fail As Expected. \n', [Name]).
+    ansi_format([bold, fg(cyan)], '[~w]: Pass - Parse Fail As Expected. \n', [Name]).
 
 test(Name, Tokens, Expected) :- 
     parse(Tokens, AST), 
     \+ evaluate(AST, _),  
     ( Expected == 'eval_fail' | Expected == 'evaluate_fail'), 
-        ansi_format([conceal, fg(cyan)], '[~w]: Pass - Evaluate Fail As Expected. \n', [Name]).
+        ansi_format([bold, fg(cyan)], '[~w]: Pass - Evaluate Fail As Expected. \n', [Name]).
 
 test(Name, Tokens, Expected) :- 
     parse(Tokens, AST), evaluate(AST, X), (
@@ -288,7 +289,7 @@ test(Name, Tokens, Expected) :-
             write(' Result: '), write(X), 
             write(', Expected: '), writeln(Expected) )  
      |  ( X == Expected, 
-        ansi_format([conceal, fg(cyan)], '[~w]: Pass. \n', [Name])
+        ansi_format([bold, fg(cyan)], '[~w]: Pass. \n', [Name])
         )).
 
 test_PARSE_FAIL :-
@@ -297,6 +298,7 @@ test_PARSE_FAIL :-
     writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
     test('T_PARSE_FAIL_1', ['function', 'f', '(', 'x', ',', 'y', ')', '{', 'return', 'x', '.', '}', ';', 'return', 'f', '(', 10 , ')', '.'], 'parse_fail'),
     writeln('').
+
 
 test_EVAL_FAIL :-
     writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
@@ -307,14 +309,59 @@ test_EVAL_FAIL :-
     test('T_EVAL_FAIL_3', ['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '<=', 3, ')', 'then', 'out', '<-', 1, '.', 'endif', ';', 'return', 'out', '.'], 'eval_fail'),
     writeln('').
 
+test_PAREN :-
+    writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
+    writeln('% Test Cases for PARENTHESES. '),
+    writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
+    test('T_PAREN_FAIL_1', [return,'(',1,'.'], 'parse_fail'),
+    test('T_PAREN_FAIL_2', [return,1,')','.'], 'parse_fail'),
+    test('T_PAREN_FAIL_3', [return,'(',42,'(',')',')','.'], 'parse_fail'),
+    test('T_PAREN_1', [return,'(',42,')','.'], 42),
+    test('T_PAREN_2', [return,'(','(',42,')',')','.'], 42),
+    writeln('').
+
 test_ARITHMETIC :-
     writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
     writeln('% Test Cases for ARITHMETIC'),
     writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
-    test('T_ARITHMETIC_1', ['return', '(', 64, '/', 2, '/', 8, ')', '.'], 4),
-    test('T_ARITHMETIC_2', ['return', '(', 2.5, '-', 1.01, '+', '(', 3, '*', 1.5, ')', ')', '.'], 5.99),
-    test('T_ARITHMETIC_3', ['var', 'x', '<-', '(', 3, '*', 2, '-', 4, ')', ';', 'var', 'y', '<-', '(', 5, '+', 6, '/', 2, ')', ';', 'var', 'z', '<-', '(', 3, '*', 4, '/', 2, ')', ';', 'return', '(', 'x', '-', 'y', '*', 'z', ')', '.'], -46),
-    test('T_ARITHMETIC_4', ['var', 'x', '<-', '(', 3, '*', 2, '*', 4, ')', ';', 'var', 'y', '<-', '(', 5, '+', 6, '+', 2, ')', ';' , 'var', 'z', '<-', '(', 3, '-', 4, '-', 2, ')', ';', 'return', '(', 'x', '/', 'y', '/', 'z', ')', '.'], -0.6153846153846154),
+    test('T_ARITHMETIC_0', ['return','(',1,+,1,')','.'], 2),
+    test('T_ARITHMETIC_1', ['return','(',2,*,2,')','.'], 4),
+    test('T_ARITHMETIC_2', ['return','(',1,+,1,+,1,')','.'], 3),
+    test('T_ARITHMETIC_3', ['return','(',2,*,4,*,6,')','.'], 48),
+    test('T_ARITHMETIC_4', ['return','(',1,-,1,')','.'], 0),
+    test('T_ARITHMETIC_5', ['return','(',2,/,2,')','.'], 1),
+    test('T_ARITHMETIC_6', ['return','(',1,-,1,+,1,')','.'], 1),
+    test('T_ARITHMETIC_7', ['return','(',64,/,2,/,8,')','.'], 4),
+    test('T_ARITHMETIC_8', ['return','(',1,+,'(',1,+,1,')',')','.'], 3),
+    test('T_ARITHMETIC_9', ['return','(',2,*,'(',2,/,2,')',')','.'], 2),
+    test('T_ARITHMETIC_10', ['return','(',4,-,'(',2,-,1,')',')','.'], 3),
+    test('T_ARITHMETIC_11', ['return','(',4,/,'(',2,-,-2,')',')','.'], 1),
+    test('T_ARITHMETIC_12', ['return','(',1,*,'(',3,/,2,')',')','.'], 1.5),
+    test('T_ARITHMETIC_13', ['return','(',2.5,*,'(',3,/,2,')',')','.'], 3.75),
+    test('T_ARITHMETIC_14', ['return','(',2.5,+,3.66,')','.'], 6.16),
+    test('T_ARITHMETIC_15', ['return','(',2.5,-,1.01,')','.'], 1.49),
+    test('T_ARITHMETIC_16', ['return','(',2.5,-,1.01,+,'(',3,*,1.5,')',')','.'], 5.99),
+    test('T_ARITHMETIC_17', ['return','(',2,*,9,/,6,')','.'], 3),
+    test('T_ARITHMETIC_31', ['return','(',1,-,1,+,1,+,10,')','.'], 11),
+    test('T_ARITHMETIC_32', ['return','(',10,'-',1,'+',2,'*',10,')','.'],  29),
+    test('T_ARITHMETIC_33', ['return','(',10,'-',10,'/',2,'+',10,')','.'], 15),
+    test('T_ARITHMETIC_34', ['return','(',10,'-',10,'*',5,'-',10,')','.'], -50),
+    test('T_ARITHMETIC_35', ['return','(',10,'+',10,'-',5,'-',10,')','.'], 5),
+    test('T_ARITHMETIC_36', ['return','(',10,'+',10,'-',5,'+',10,')','.'], 25),
+    test('T_ARITHMETIC_37', ['return','(',1,'+',10,'-',5,'+',10,'-',11,')','.'], 5),
+    test('T_ARITHMETIC_38', ['return','(',1,'+',8,'+',5,'-',10,'+',9,')','.'],  13),
+    test('T_ARITHMETIC_39', ['return','(',10,'*',8,'/',2,'/',10,')','.'],     4),
+    test('T_ARITHMETIC_40', ['return','(',8,'*',10,'/',2,'*',10,')','.'],     400),
+    test('T_ARITHMETIC_41', ['return','(',5,'/',10,'*',2,'*',210,')','.'],    210.0),
+    test('T_ARITHMETIC_42', ['return','(',3,'/',4,'*',20,'*',2,')','.'], 30.0),
+    test('T_ARITHMETIC_43', ['return','(',3,'/',4,'*',8,'+',2,')','.'],  8.0),
+    test('T_ARITHMETIC_44', ['return','(',3,'/',4,'*',8,'-',2,')','.'],  4.0),
+    test('T_ARITHMETIC_45', ['return','(',3,'*',4,'/',8,'+',1,')','.'],  2.5),
+    test('T_ARITHMETIC_46', ['return','(',3,'*',40,'/',4,'*',10,'+',1,')','.'], 301),
+    test('T_ARITHMETIC_51', ['return', '(', 64, '/', 2, '/', 8, ')', '.'], 4),
+    test('T_ARITHMETIC_52', ['return', '(', 2.5, '-', 1.01, '+', '(', 3, '*', 1.5, ')', ')', '.'], 5.99),
+    test('T_ARITHMETIC_53', ['var', 'x', '<-', '(', 3, '*', 2, '-', 4, ')', ';', 'var', 'y', '<-', '(', 5, '+', 6, '/', 2, ')', ';', 'var', 'z', '<-', '(', 3, '*', 4, '/', 2, ')', ';', 'return', '(', 'x', '-', 'y', '*', 'z', ')', '.'], -46),
+    test('T_ARITHMETIC_54', ['var', 'x', '<-', '(', 3, '*', 2, '*', 4, ')', ';', 'var', 'y', '<-', '(', 5, '+', 6, '+', 2, ')', ';' , 'var', 'z', '<-', '(', 3, '-', 4, '-', 2, ')', ';', 'return', '(', 'x', '/', 'y', '/', 'z', ')', '.'], -0.6153846153846154),
     writeln('').
 
 test_IF_THEN :-
@@ -373,9 +420,30 @@ test_FUNCTION :-
 main :- 
     test_PARSE_FAIL,
     test_EVAL_FAIL,
+    test_PAREN,
     test_ARITHMETIC,
     test_IF_THEN,
     test_IF_THEN_ELSE,
     test_WHILE_DO_DONE,
     test_FUNCTION,
     true.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

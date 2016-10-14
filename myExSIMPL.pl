@@ -166,8 +166,8 @@ validate(decAssignment(NAME, VALUE), _, PRE_VAR, POST_VAR, PRE_FUNC, PRE_FUNC) :
 validate(conditional(COND, BRANCH_IF), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :- 
     validate(COND, _, PRE_VAR, PRE_VAR, PRE_FUNC, PRE_FUNC),
     validate(BRANCH_IF, OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC).
-%validate(conditional(COND, _), _, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :- 
-%    \+ validate(COND, _, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC).
+%validate(conditional(COND, _), _, PRE_VAR, _, PRE_FUNC, _) :- 
+%    \+ validate(COND, _, PRE_VAR, PRE_VAR, PRE_FUNC, PRE_FUNC).
 %COND_OUTCOME \== true.
 %validate(conditional(COND, IF_BRANCH, _), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :- 
 %    validate(COND, COND_OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC), 

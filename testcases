@@ -52,8 +52,13 @@ parse(['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '>=', 3, ')'
 
 
 // while
-parse(['var', 'x', ';', 'x', '<-', 1, ';', 'while', '(', 'x', '<', 0, ')', 'do', 'x', '<-', 10, '.', 'done', ';', 'return', 'x', '.'], AST).
+// not enter the loop
+parse(['var', 'x', ';', 'x', '<-', 1, ';', 'while', '(', 'x', '<', 0, ')', 'do', 'x', '<-', '(','x', '+', 1,')', '.', 'done', ';', 'return', 'x', '.'], AST), evaluate(AST, X).
+// enter the loop: finite loop
+parse(['var', 'x', ';', 'x', '<-', -3, ';', 'while', '(', 'x', '<', 0, ')', 'do', 'x', '<-', '(','x', '+', 1,')', '.', 'done', ';', 'return', 'x', '.'], AST), evaluate(AST, X).
+
 parse(['var', 'x', ';', 'x', '<-', 1, ';', 'while', '(', 'x', '<', 0, ')', 'do', 'x', '<-', 10, '.', 'done', ';', 'x', '<-', 20,  ';', 'return', 'x', '.'], AST).
+parse(['var', 'x', '<-', 0, ';', 'while', '(', '(', 'x', '<=', 50, ')', '&&', '(', 'x', '<', 100, ')',')', 'do', 'x', '<-', '(','x', '+', 1,')', '.', 'done', ';', 'return', 'x', '.'], AST).
 
 
 // function definition

@@ -162,7 +162,7 @@ validate(compute(multiplication, OPR_A, OPR_B), OUTCOME, VAR, VAR, FUNC, FUNC):-
     OUTCOME is VAL_OPR_A * VAL_OPR_B.
 validate(compute(division, OPR_A, OPR_B), OUTCOME, VAR, VAR, FUNC, FUNC):- 
     VAL_OPR_B \== 0, 
-    VAL_OPR_B \== 0, 
+    VAL_OPR_B \== 0.0, 
     validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
     validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), 
     OUTCOME is VAL_OPR_A / VAL_OPR_B.
@@ -273,30 +273,58 @@ writeTestName(Name) :- write('['), write(Name), write(']').
 test(Name, Tokens, Expected) :- 
     \+ parse(Tokens, _), 
     Expected == 'parse_fail', 
-    writeTestName(Name), 
-    writeln(': Pass - Parse Fail As Expected.').
+    ansi_format([conceal, fg(cyan)], '[~w]: Pass - Parse Fail As Expected. \n', [Name]).
 
 test(Name, Tokens, Expected) :- 
     parse(Tokens, AST), 
     \+ evaluate(AST, _),  
     ( Expected == 'eval_fail' | Expected == 'evaluate_fail'), 
-    writeTestName(Name), 
-    writeln(': Pass - Evaluate Fail As Expected.').
+        ansi_format([conceal, fg(cyan)], '[~w]: Pass - Evaluate Fail As Expected. \n', [Name]).
 
 test(Name, Tokens, Expected) :- 
     parse(Tokens, AST), evaluate(AST, X), (
         ( X \== Expected, 
-            writeTestName(Name), write(': Fail. Result: '), write(X), 
+            ansi_format([bold, fg(red)], '[~w]: Fail.', [Name]),
+            write(' Result: '), write(X), 
             write(', Expected: '), writeln(Expected) )  
      |  ( X == Expected, 
-            writeTestName(Name), writeln(': Pass. '))).
+        ansi_format([conceal, fg(cyan)], '[~w]: Pass. \n', [Name])
+        )).
+
+test_PARSE_FAIL :-
+    writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
+    writeln('% Test Cases that should fail at the parsing stage. '),
+    writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
+    test('T_PARSE_FAIL_1', ['function', 'f', '(', 'x', ',', 'y', ')', '{', 'return', 'x', '.', '}', ';', 'return', 'f', '(', 10 , ')', '.'], 'parse_fail'),
+    writeln('').
+
+test_EVAL_FAIL :-
+    writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
+    writeln('% Test Cases that should fail at evaluation stage. '),
+    writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
+    test('T_EVAL_FAIL_1', ['return', 'x', '.'], 'eval_fail'),
+    test('T_EVAL_FAIL_1', ['return', 'f', '(', 10 , ')', '.'], 'eval_fail'),
+    writeln('').
 
 test_IF_THEN :-
-    test('T1', ['var', 'x', ';', 'x', '<-', -1, ';', 'if', '(', 'x', '!=', 0, ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], 10),
-    test('T2', ['var', 'x', ';', 'x', '<-', 1, ';', 'if', '(', 'x', '==', 0, ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], 1),
-    true.
+    writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
+    writeln('% Test Cases for IF THEN '),
+    writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
+    test('T_IF_THEN_1', ['var', 'x', ';', 'x', '<-', -1, ';', 'if', '(', 'x', '!=', 0, ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], 10),
+    test('T_IF_THEN_2', ['var', 'x', ';', 'x', '<-', 1, ';', 'if', '(', 'x', '==', 0, ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], 1),
+    writeln('').
 
-test_WHILE :-
+test_IF_THEN_ELSE :-
+    writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
+    writeln('% Test Cases for IF THEN ELSE'),
+    writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
+    test('T_IF_THEN_ELSE_1', ['var', 'x', ';', 'x', '<-', 1, ';', 'if', '(', 'x', '<', 0, ')', 'then', 'x', '<-', 10, '.', 'else', 'x', '<-', 20, '.', 'endif', ';', 'return', 'x', '.'], 20),
+    writeln('').
+
+test_WHILE_DO_DONE :-
+    writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
+    writeln('% Test Cases for WHILE DO DONE'),
+    writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
     test('T_WHILE_1', ['var', 'x', '<-', -3, ';', 'while', '(', 'x', '<', 0, ')', 'do', 'x', '<-', '(','x', '+', 1,')', '.', 'done', ';', 'return', 'x', '.'], 0),
     test('T_WHILE_2', ['var', 'x', '<-', 3, ';', 'while', '(', 'x', '<', 0, ')', 'do', 'x', '<-', '(','x', '+', 1,')', '.', 'done', ';', 'return', 'x', '.'], 3),
     test('T_WHILE_3', ['var', 'x', '<-', -1000, ';', 'while', '(', 'x', '!=', 0, ')', 'do', 'x', '<-', '(','x', '+', 1,')', '.', 'done', ';', 'return', 'x', '.'], 0),
@@ -309,14 +337,16 @@ test_WHILE :-
     test('T_WHILE_20', ['var', 'x', '<-', 0, ';', 'while', '(', '(', '(', 'x', '<=', 50, '&&', 'x', '<', 25, ')', '||', 'x', '<', 100, ')',')', 'do', 'x', '<-', '(','x', '+', 1,')', '.', 'done', ';', 'return', 'x', '.'], 100),
     test('T_WHILE_21', ['var', 'x', '<-', 0, ';', 'while', '(', '(', 'x', '<=', 500, '&&', '(', '(', 'x', '<', 125, '||', 'x', '<', 25, ')', '||', 'x', '<', 100, ')', ')',')', 'do', 'x', '<-', '(','x', '+', 1,')', '.', 'done', ';', 'return', 'x', '.'], 125),
     test('T_WHILE_22', ['var', 'x', '<-', 0, ';', 'while', '(', '(', 'x', '<=', 500, '||', '(', '(', 'x', '<', 125, '||', 'x', '<', 25, ')', '||', 'x', '<', 100, ')', ')',')', 'do', 'x', '<-', '(','x', '+', 1,')', '.', 'done', ';', 'return', 'x', '.'], 501),
-    true.
+    writeln('').
 
-test_FUNCTION_ :- 
+test_FUNCTION :- 
+    writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
+    writeln('% Test Cases for function declaration and function calls'),
+    writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
     test('T_FUNC_1', ['function', 'f', '(', 'x', ')', '{', 'return', 'x', '.', '}', ';', 'return', 'f', '(', 10 , ')', '.'], 10),
     test('T_FUNC_2', ['function', 'f', '(', 'x', ')', '{', 'return', 'x', '.', '}', ';', 'return', 'f', '(', '(', 10, '+', 1, ')', ')', '.'], 11),
     test('T_FUNC_3', ['function', 'f', '(', 'x', ')', '{', 'return', '(','x', '+', 1, ')', '.', '}', ';', 'return', 'f', '(', 10 , ')', '.'], 11),
-    test('T_FUNC_fail_1', ['function', 'f', '(', 'x', ',', 'y', ')', '{', 'return', 'x', '.', '}', ';', 'return', 'f', '(', 10 , ')', '.'], 'parse_fail'),
-    true.
+    writeln('').
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -324,7 +354,9 @@ test_FUNCTION_ :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 main :- 
+    test_PARSE_FAIL,
+    test_EVAL_FAIL,
     test_IF_THEN,
-    test_WHILE,
-    test_FUNCTION_,
+    test_WHILE_DO_DONE,
+    test_FUNCTION,
     true.

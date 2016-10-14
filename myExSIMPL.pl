@@ -330,8 +330,37 @@ test_PARSE_FAIL :-
     test('T_PARSE_FAIL_14', ['var', '!=', ';', '+', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
     test('T_PARSE_FAIL_15', ['var', '||', ';', '+', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
     test('T_PARSE_FAIL_16', ['var', '&&', ';', '+', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_17', ['return', 3, '+', 5, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_18', ['var', 'x', ';', 'x', '<-', 3, '+', 5, ';', 'return', 10, '+', 5, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_19', ['var', 'x', '<-', 3, '+', 5, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_20', ['var', 'x', 'x', '<-', 3, '+', 5, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_21', ['var', 'x', ';', ';', '<-', 3, '+', 5, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_22', ['var', 'x', ';', 'x', '<-', '(', 3, '+', 5, ')', ';', 'return', 10], 'parse_fail'),
+    test('T_PARSE_FAIL_23', ['var', 'x', ';', 'x', '<-', '(', 3, '+', 5, ')', ';', 'return', 10, '.', '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_24', ['var', 'x', ';', 'x', '<-', '(', 3, 'a', 5, ')', ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_25', ['var', 'x', ';', 'x', '<-', '(', 3, 5, ')', ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_26', ['var', 'x', ';', 'x', '<-', '(', 3, '+', '+', 5, ')', ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_27', ['var', 'x', ';', 3, ';', 'x', '<-', '(', 3, '+', 5, ')', ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_28', ['var', 8, ';', 'x', '<-', '(', 3, '+', 5, ')', ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_29', ['return', '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_30', ['return', ';', 'return', 1, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_31', ['a', '<-', '1', '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_32', ['var', 'a', ';', 'a', '<-', 1, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_33', ['var', 'a', ';', 'a', '<-', 1, ';', 'return', 'a', '.', 'a', '<-', 0], 'parse_fail'),
+    test('T_PARSE_FAIL_34', ['var', 'a', ';', 'a', '<-', 1, ';', 'return', 'a', '.', 'a', '<-', 0, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_35', ['var', 'var', ';', 'var', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_36', ['var', 'return', ';', 'return', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_37', ['var', '+', ';', '+', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_38', ['var', '-', ';', '-', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_39', ['var', '*', ';', '*', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_40', ['var', '/', ';', '/', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_41', ['var', '.', ';', '.', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_42', ['var', ';', ';', ';', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_43', ['var', '(', ';', '(', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_44', ['var', ')', ';', ')', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_45', ['var', 10, ';', 10, '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_46', ['var', 10.0, ';', 10.0, '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
     writeln('').
-
 
 test_EVAL_FAIL :-
     writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
@@ -398,6 +427,25 @@ test_ARITHMETIC :-
     test('T_ARITHMETIC_54', ['var', 'x', '<-', '(', 3, '*', 2, '*', 4, ')', ';', 'var', 'y', '<-', '(', 5, '+', 6, '+', 2, ')', ';' , 'var', 'z', '<-', '(', 3, '-', 4, '-', 2, ')', ';', 'return', '(', 'x', '/', 'y', '/', 'z', ')', '.'], -0.6153846153846154),
     writeln('').
 
+test_DECASSIGN :-
+    writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
+    writeln('% Test Cases for DECASSIGN'),
+    writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
+    test('T_DECASSIGN_1', ['var', 'x', '<-', 1, ';', 'return', x, '.'], 1),
+    test('T_DECASSIGN_2', ['var', 'x', '<-', 1, ';', 'x', '<-', 100, ';', 'return', 'x', '.'], 100),
+    test('T_DECASSIGN_3', ['var', 'x', '<-', 1, ';', 'var', 'y', ';', 'y', '<-', 10, ';', 'return', '(', 'x', '+', 'y', ')', '.'], 11),
+    test('T_DECASSIGN_4', ['var', 'x', '<-', 1, ';', 'var', 'y', ';', 'y', '<-', 1000, ';', 'x', '<-', 'y', ';', 'return', 'x', '.'], 1000),
+    test('T_DECASSIGN_5', ['var', 'y', ';', 'y', '<-', 1000, ';', 'var', 'x', '<-', 'y', ';', 'return', 'x', '.'], 1000),
+    test('T_DECASSIGN_6', ['var', 'x', '<-', '(', 10, '+', 5, ')', ';', 'return', x, '.'], 15),
+    test('T_DECASSIGN_7', ['var', 'y', ';', 'y', '<-', 2, ';', 'var', 'x', '<-', '(', 10, '+', 'y', ')', ';', 'return', 'x', '.'], 12),
+    test('T_DECASSIGN_8', ['var', 'x', '<-', 1.12355, ';', 'return', x, '.'], 1.12355),
+    test('T_DECASSIGN_9', ['var', 'x', '<-', 1, ';', 'var', 'x', ';', 'return', 'x', '.'], 'eval_fail'),
+    test('T_DECASSIGN_10', ['var', 'x', '<-', 1, ';', 'var', 'x', '<-', 4, ';', 'return', 'x', '.'], 'eval_fail'),
+    test('T_DECASSIGN_11', ['var', 'x', '<-', 'a', ';', 'return', 10, '.'], 'eval_fail'),
+    test('T_DECASSIGN_12', ['var', 'x', '<-', 'x', ';', 'return', 10, '.'], 'eval_fail'),
+    test('T_DECASSIGN_13', ['var', 'x', ';', 'x', '<-', 2, ';', 'var', 'x', '<-', 10, ';', 'return', 10, '.'], 'eval_fail'),
+    writeln('').
+
 test_VARIABLE :-
     writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
     writeln('% Test Cases for VARIABLES'),
@@ -425,6 +473,25 @@ test_VARIABLE :-
     test('T_VARS_23', [var,b,;,b,<-,37.1245,;,return,b,'.'], 37.1245),
     writeln('').
 
+test_VAR_ARITH :-
+    writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
+    writeln('% Test Cases for VAR ARITHMETIC'),
+    writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
+    test('T_VAR_ARITH_1', ['var', 'a', ';', 'var', 'b', ';', 'var', 'c', ';', 'a', '<-', 5, ';', 'b', '<-', '(', 'a', '+', 5, ')', ';', 'c', '<-', '(', 10, '+', 'a', '+', 'b', ')', ';', 'return', 'c', '.'], 25),
+    test('T_VAR_ARITH_2', ['var', 'a', ';', 'var', 'b', ';', 'var', 'c', ';', 'a', '<-', 5, ';', 'b', '<-', '(', 'a', '+', 5, ')', ';', 'c', '<-', '(', 10, '*', 'a', '*', 'b', ')', ';', 'return', 'c', '.'], 500),
+    test('T_VAR_ARITH_3', ['var', 'a', ';', 'var', 'b', ';', 'var', 'c', ';', 'a', '<-', 5, ';', 'b', '<-', '(', 'a', '+', 5, ')', ';', 'c', '<-', '(', 10, '-', 'a', '-', 'b', ')', ';', 'return', 'c', '.'], -5),
+    test('T_VAR_ARITH_4', ['var', 'a', ';', 'var', 'b', ';', 'var', 'c', ';', 'a', '<-', 5, ';', 'b', '<-', '(', 'a', '+', 5, ')', ';', 'c', '<-', '(', 10, '-', 'a', '+', 'b', ')', ';', 'return', 'c', '.'], 15),
+    test('T_VAR_ARITH_5', ['var', 'a', ';', 'var', 'b', ';', 'var', 'c', ';', 'a', '<-', 5, ';', 'b', '<-', '(', 'a', '+', 5, ')', ';', 'c', '<-', '(', 100, '/', 'a', '/', 'b', ')', ';', 'return', 'c', '.'], 2),
+    test('T_VAR_ARITH_6', ['var', 'a', ';', 'var', 'b', ';', 'var', 'c', ';', 'a', '<-', 5, ';', 'b', '<-', '(', 'a', '+', 5, ')', ';', 'c', '<-', '(', 100, '/', 'a', '*', 'b', ')', ';', 'return', 'c', '.'], 200),
+    test('T_VAR_ARITH_7', ['var', 'a', ';', 'var', 'b', ';', 'var', 'c', ';', 'a', '<-', 5, ';', 'b', '<-', '(', 'a', '+', 5, ')', ';', 'c', '<-', '(', 100, '+', 'a', '*', 'b', '-', 200, ')', ';', 'return', 'c', '.'], -50),
+    test('T_VAR_ARITH_8', ['var', 'a', ';', 'var', 'b', ';', 'var', 'c', ';', 'a', '<-', 5, ';', 'b', '<-', '(', 'a', '+', 5, ')', ';', 'c', '<-', '(', '(', 100, '+', 'a', ')', '*', 'b', '-', 200, ')', ';', 'return', 'c', '.'], 850),
+    test('T_VAR_ARITH_9', ['var', 'a', ';', 'var', 'b', ';', 'var', 'c', ';', 'a', '<-', 5, ';', 'b', '<-', '(', 'a', '+', 5, ')', ';', 'c', '<-', '(', '(', 10, '+', 'a', ')', '*', '(', 'b', '-', 20, ')', ')', ';', 'return', 'c', '.'], -150),
+    test('T_VAR_ARITH_10', ['var', 'a', ';', 'var', 'b', ';', 'var', 'c', ';', 'a', '<-', 5, ';', 'b', '<-', '(', 'a', '+', 5, ')', ';', 'c', '<-', '(', '(', 10, '+', 'a', ')', '+', '(', 'b', '-', 20, ')', ')', ';', 'return', 'c', '.'], 5),
+    test('T_VAR_ARITH_11', ['var', 'a', ';', 'var', 'b', ';', 'var', 'c', ';', 'a', '<-', 5, ';', 'b', '<-', '(', 'a', '+', 5, ')', ';', 'c', '<-', '(', '(', 10, '+', 'a', ')', '-', '(', 'b', '-', 20, ')', ')', ';', 'return', 'c', '.'], 25),
+    test('T_VAR_ARITH_12', ['var', 'a', ';', 'var', 'b', ';', 'var', 'c', ';', 'a', '<-', 5, ';', 'b', '<-', '(', 'a', '+', 5, ')', ';', 'c', '<-', '(', '(', 10, '+', 'a', ')', '/', '(', 'b', '-', 20, ')', ')', ';', 'return', 'c', '.'], -1.5),
+    test('T_VAR_ARITH_13', ['var', 'a', ';', 'var', 'b', ';', 'var', 'c', ';', 'a', '<-', 5, ';', 'b', '<-', '(', 'a', '+', 5, ')', ';', 'c', '<-', '(', '(', 10, '*', 'a', ')', '/', '(', 'b', '-', 15, '+', 10, ')', ')', ';', 'return', 'c', '.'], 10),
+    test('T_VAR_ARITH_14', ['var', 'a', ';', 'var', 'b', ';', 'var', 'c', ';', 'a', '<-', 5, ';', 'b', '<-', '(', 'a', '+', 5, ')', ';', 'c', '<-', '(', '(', 10, '*', '(', 'a', '+', 1, ')', ')', '/', '(', '(', 'b', '-', 20, ')', '/', 2, ')', ')', ';', 'return', 'c', '.'], -12),
+    writeln('').
 
 test_LOGIC :-
     writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
@@ -537,6 +604,7 @@ main :-
     test_EVAL_FAIL,
     test_PAREN,
     test_ARITHMETIC,
+    test_DECASSIGN,
     test_VARIABLE,
     test_LOGIC,
     test_IF_THEN,

@@ -13,6 +13,7 @@ loopWords(['while', 'do', 'done']).    % loop
 /* Program recursive definition */
 program(prog(retStatement(VALUE))) --> [return], base(VALUE), ['.'].  % terminating statement
 program(prog(STATEMENT, PROGRAM)) --> statement(STATEMENT), [';'], program(PROGRAM).
+
 statement(declaration(NAME)) --> [var], identity(NAME).
 statement(assignment(NAME, VALUE)) --> identity(NAME), ['<-'], base(VALUE).
 statement(decAssignment(NAME, VALUE)) --> [var], identity(NAME), ['<-'], base(VALUE).
@@ -32,16 +33,18 @@ statementSeq(sseq(STATEMENT)) --> statement(STATEMENT), ['.'].
 statementSeq(sseq(STATEMENT, REMAINDERS)) --> statement(STATEMENT), [';'], statementSeq(REMAINDERS).
 
 condition(singcond(OPR_A, COMP, OPR_B)) --> base(OPR_A), comparator(COMP), base(OPR_B).
-condition(mulcond(COND_A, LOG_OP, COND_B)) --> ['('], condition(COND_A), logical(LOG_OP), condition(COND_B), [')'].
+condition(mulcond(COND_A, LOGIC_OP, COND_B)) --> ['('], condition(COND_A), logical(LOGIC_OP), condition(COND_B), [')'].
 
-comparator(COMP) --> [COMP], { comparators(COMPARATORS), member(COMP, COMPARATORS) }.
-logical(LOG_OP) --> [LOG_OP], { logOp(LOGIC_OPERATORS), member(LOG_OP, LOGIC_OPERATORS) }. 
+comparator(COMP_OP) --> [COMP_OP], { comparators(COMPARATORS), member(COMP_OP, COMPARATORS) }.
+logical(LOGIC_OP) --> [LOGIC_OP], { logOp(LOGIC_OPERATORS), member(LOGIC_OP, LOGIC_OPERATORS) }. 
 
 /* Element-wise rule definition */
 base(NAME) --> identity(NAME) | numerics(NAME) | ['('], expression(NAME), [')'].
 base(funcCall(FUNC_NAME, FUNC_ARG)) --> identity(FUNC_NAME), ['('], base(FUNC_ARG), [')'].  % func call
 expression(EXP) --> term(EXP) | term(TERM), ['+'], left_assoc(EXP, TERM, addition) | term(TERM), ['-'], left_assoc(EXP, TERM, subtraction).
-term(TERM) --> factor(TERM) | factor(VALUE), ['*'], left_assoc(TERM, VALUE, multiplication) | factor(VALUE), ['/'], left_assoc(TERM, VALUE, division).
+term(TERM) --> factor(TERM) | 
+               factor(VALUE), ['*'], left_assoc(TERM, VALUE, multiplication) | 
+               factor(VALUE), ['/'], left_assoc(TERM, VALUE, division).
 
 factor(FACTOR) --> base(FACTOR).
 identity(NAME) --> [NAME], { 
@@ -109,6 +112,13 @@ eval_cond(singcond(OPR_A, COMP_OP, OPR_B), _, VAR, VAR, FUNC, FUNC) :-
     validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
     validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), 
     VAL_OPR_A \== VAL_OPR_B.
+% validate all logical computations
+eval_cond(mulcond(COND_A, LOGIC_OP, COND_B), _, VAR, VAR, FUNC, FUNC):- 
+    LOGIC_OP == '&&',
+    ( eval_cond(COND_A, _, VAR, VAR, FUNC, FUNC), eval_cond(COND_B, _, VAR, VAR, FUNC, FUNC) ).
+eval_cond(mulcond(COND_A, LOGIC_OP, COND_B), _, VAR, VAR, FUNC, FUNC):- 
+    LOGIC_OP == '||', 
+    ( eval_cond(COND_A, _, VAR, VAR, FUNC, FUNC); eval_cond(COND_B, _, VAR, VAR, FUNC, FUNC) ). 
 
 % validate an empty program or statement
 validate([], _, VAR, VAR, FUNC, FUNC).
@@ -132,22 +142,11 @@ validate(compute(multiplication, OPR_A, OPR_B), OUTCOME, VAR, VAR, FUNC, FUNC):-
     OUTCOME is VAL_OPR_A * VAL_OPR_B.
 validate(compute(division, OPR_A, OPR_B), OUTCOME, VAR, VAR, FUNC, FUNC):- 
     VAL_OPR_B \== 0, 
+    VAL_OPR_B \== 0, 
     validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
     validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), 
     OUTCOME is VAL_OPR_A / VAL_OPR_B.
 
-% validate all logical computations
-%validate(mulcond(COND_A, LOG_OP, COND_B), OUTCOME, VAR, VAR, FUNC, FUNC):- 
-%    LOG_OP == ['&&'],
-%    validate(COND_A, VAL_COND_A, VAR, VAR, FUNC, FUNC), 
-%    validate(COND_B, VAL_COND_B, VAR, VAR, FUNC, FUNC), 
-%    OUTCOME is VAL_COND_A * VAL_COND_B.
-%validate(mulcond(COND_A, LOG_OP, COND_B), OUTCOME, VAR, VAR, FUNC, FUNC):- 
-%    LOG_OP == ['||'], 
-%    validate(COND_A, VAL_COND_A, VAR, VAR, FUNC, FUNC), 
-%    validate(COND_B, VAL_COND_B, VAR, VAR, FUNC, FUNC), 
-%    OUTCOME is VAL_COND_A + VAL_COND_B.
-%
 % validate the return statement
 validate(retStatement(VALUE), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :- 
     validate(VALUE, OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC).
@@ -182,6 +181,19 @@ validate(conditional(COND, _, ELSE_BRANCH), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC
     validate(ELSE_BRANCH, OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC).
 
 % validate the loop
+validate(prog(loop(COND, _), PROGRAM), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :- 
+    \+ eval_cond(COND, _, PRE_VAR, PRE_VAR, PRE_FUNC, PRE_FUNC),
+    validate(PROGRAM, OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC).
+validate(loop(COND, LOOP_BODY), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :- 
+    eval_cond(COND, _, PRE_VAR, PRE_VAR, PRE_FUNC, PRE_FUNC),
+    validate(LOOP_BODY, _, PRE_VAR, IME_VAR, PRE_FUNC, IME_FUNC), 
+    eval_cond(COND, _, IME_VAR, IME_VAR, IME_FUNC, IME_FUNC),
+    validate(loop(COND, LOOP_BODY), OUTCOME, IME_VAR, POST_VAR, IME_FUNC, POST_FUNC).
+validate(loop(COND, LOOP_BODY), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :- 
+    eval_cond(COND, _, PRE_VAR, PRE_VAR, PRE_FUNC, PRE_FUNC),
+    validate(LOOP_BODY, OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC), 
+    \+ eval_cond(COND, _, POST_VAR, POST_VAR, POST_FUNC, POST_FUNC).
+
 % validate sseq
 validate(sseq(STATEMENT), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :- 
     validate(STATEMENT, OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC).
@@ -201,17 +213,37 @@ validate(prog(PROGRAM, AST), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :-
 %% TESTING COMPONENTS 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-pass(Tokens, Expected) :- parse(Tokens, AST), evaluate(AST, X), X == Expected.
-failure(Tokens, Expected, Result) :- parse(Tokens, AST), evaluate(AST, X), X \== Expected, Result is X.
-test(Name, Tokens, Expected) :- pass(Tokens, Expected), write(Name), writeln(': Pass. ').
-test(Name, Tokens, Expected) :- failure(Tokens, Expected, Result), 
-                               write('['), write(Name), write(']'), write(': Fail. Result: '), write(Result), 
-                                write(', Expected: '), writeln(Expected).
+test(Name, Tokens, Expected) :- parse(Tokens, AST), evaluate(AST, X),  
+                    ( X \== Expected, write('['), write(Name), write(']'), write(': Fail. Result: '), write(X), 
+                      write(', Expected: '), writeln(Expected) ; 
+                      parse(Tokens, AST), evaluate(AST, X), X == Expected, 
+                      write('['), write(Name), write(']'), writeln(': Pass. ') ).
 
 test_IF_THEN :-
     test('T1', ['var', 'x', ';', 'x', '<-', -1, ';', 'if', '(', 'x', '!=', 0, ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], 10),
-    test('T2', ['var', 'x', ';', 'x', '<-', 1, ';', 'if', '(', 'x', '==', 0, ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], 1).
+    test('T2', ['var', 'x', ';', 'x', '<-', 1, ';', 'if', '(', 'x', '==', 0, ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], 1),
+    true.
+
+test_WHILE :-
+    test('T_WHILE_1', ['var', 'x', '<-', -3, ';', 'while', '(', 'x', '<', 0, ')', 'do', 'x', '<-', '(','x', '+', 1,')', '.', 'done', ';', 'return', 'x', '.'], 0),
+    test('T_WHILE_2', ['var', 'x', '<-', 3, ';', 'while', '(', 'x', '<', 0, ')', 'do', 'x', '<-', '(','x', '+', 1,')', '.', 'done', ';', 'return', 'x', '.'], 3),
+    test('T_WHILE_3', ['var', 'x', '<-', -1000, ';', 'while', '(', 'x', '!=', 0, ')', 'do', 'x', '<-', '(','x', '+', 1,')', '.', 'done', ';', 'return', 'x', '.'], 0),
+    test('T_WHILE_4', ['var', 'x', '<-', 1000, ';', 'while', '(', 'x', '!=', 0, ')', 'do', 'x', '<-', '(','x', '-', 1,')', '.', 'done', ';', 'return', 'x', '.'], 0),
+    test('T_WHILE_5', ['var', 'x', '<-', 0, ';', 'while', '(', 'x', '==', 0, ')', 'do', 'x', '<-', '(','x', '-', 1,')', '.', 'done', ';', 'return', 'x', '.'], -1),
+    test('T_WHILE_6', ['var', 'x', '<-', -3, ';', 'while', '(', 'x', '<=', 0, ')', 'do', 'x', '<-', '(','x', '+', 1,')', '.', 'done', ';', 'return', 'x', '.'], 1),
+    test('T_WHILE_7', ['var', 'x', '<-', -500, ';', 'while', '(', 'x', '<=', 10, ')', 'do', 'x', '<-', '(','x', '+', 1,')', '.', 'done', ';', 'return', 'x', '.'], 11),
+    test('T_WHILE_11', ['var', 'x', '<-', 0, ';', 'while', '(', '(', 'x', '<=', 50, '&&', 'x', '<', 100, ')',')', 'do', 'x', '<-', '(','x', '+', 1,')', '.', 'done', ';', 'return', 'x', '.'], 51),
+    test('T_WHILE_12', ['var', 'x', '<-', 0, ';', 'while', '(', '(', 'x', '<=', 50, '||', 'x', '<', 100, ')',')', 'do', 'x', '<-', '(','x', '+', 1,')', '.', 'done', ';', 'return', 'x', '.'], 100),
+    test('T_WHILE_20', ['var', 'x', '<-', 0, ';', 'while', '(', '(', '(', 'x', '<=', 50, '&&', 'x', '<', 25, ')', '||', 'x', '<', 100, ')',')', 'do', 'x', '<-', '(','x', '+', 1,')', '.', 'done', ';', 'return', 'x', '.'], 100),
+    test('T_WHILE_21', ['var', 'x', '<-', 0, ';', 'while', '(', '(', 'x', '<=', 500, '&&', '(', '(', 'x', '<', 125, '||', 'x', '<', 25, ')', '||', 'x', '<', 100, ')', ')',')', 'do', 'x', '<-', '(','x', '+', 1,')', '.', 'done', ';', 'return', 'x', '.'], 125),
+    test('T_WHILE_22', ['var', 'x', '<-', 0, ';', 'while', '(', '(', 'x', '<=', 500, '||', '(', '(', 'x', '<', 125, '||', 'x', '<', 25, ')', '||', 'x', '<', 100, ')', ')',')', 'do', 'x', '<-', '(','x', '+', 1,')', '.', 'done', ';', 'return', 'x', '.'], 501),
+    true.
+
+test_FUNCTION :- 
+    true.
 
 main :- 
-    test_IF_THEN.
+    test_IF_THEN,
+    test_WHILE,
+    test_FUNCTION,
+    true.

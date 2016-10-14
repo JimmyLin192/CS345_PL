@@ -6,6 +6,8 @@ parse([return, '(', 5, -, 2, +, 2, ')', '.'], AST), evaluate(AST, Res).
 
 parse([return, '(', 5, -, 2, +, 2, -, 1, +, 10, ')', '.'], AST), evaluate(AST, Res).
 
+parse([return,'(', 42, ')', '.'], AST), evaluate(AST, Res).
+
 Result = 4
 parse(['var' ,'y' ,';' ,'y' ,'<-' ,'(' ,2 ,'*' ,4 ,'/' ,4 ,'+' ,1 ,')' ,';' ,'var' ,'x' ,'<-' ,'(' ,'y' ,'*' ,2 ,')' ,';' ,'x' ,'<-' ,2 ,';' ,'var' ,'z' ,'<-' ,'(' ,'y' ,'+' ,'x' ,'/' ,2 ,')' ,';' ,'return' ,'(' ,'z' ,')' ,'.' ], AST), evaluate(AST, Result).
 
@@ -24,6 +26,12 @@ parse(['var' ,'x' ,'<-' ,'(' ,3 ,'*' ,2 ,'-' ,4 ,')' ,';' ,'var' ,'y' ,'<-' ,'('
 Result = -0.6153846153846154
 parse(['var' ,'x' ,'<-' ,'(' ,3 ,'*' ,2 ,'*' ,4 ,')' ,';' ,'var' ,'y' ,'<-' ,'(' ,5 ,'+' ,6 ,'+' ,2 ,')' ,';' ,'var' ,'z' ,'<-' ,'(' ,3 ,'-' ,4 ,'-' ,2 ,')' ,';' ,'return' ,'(' ,'x' ,'/' ,'y' ,'/' ,'z' ,')' ,'.' ], AST), evaluate(AST, Result).
 
+parse([return,'(',2.5,-,1.01,+,'(',3,*,1.5,')',')','.'], AST), evaluate(AST, Res).
+
+parse(['return', '(', '(', '(', '(', '(', '(', '(', '(', '(', '(', 6, '+', 3, ')', ')', ')', ')', ')', ')', ')', ')', ')', ')', '.'], AST), evaluate(AST, Res).
+
+parse([return,'(',8,+,10,/,2,*,10,')','.'], AST),evaluate(AST, Res).
+
 should fail:
 parse(['var' ,'return' ,'<-' ,1 ,';' ,'return' ,'(' ,'return' ,')' ,'.' ], AST), evaluate(AST, Result).
 parse(['var' ,'var' ,'<-' ,1 ,';' ,'return' ,'(' ,'var' ,')' ,'.' ], AST), evaluate(AST, Result).
@@ -32,23 +40,39 @@ parse(['var' ,'<-' ,'<-' ,1 ,';' ,'return' ,'(' ,'<-' ,')' ,'.' ], AST), evaluat
 --------------------------------------------------------------------------------------------------
 HW03:
 // if then: testing logOp and comparators
-parse(['var', 'x', ';', 'x', '<-', -1, ';', 'if', '(', 'x', '!=', 0, ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], AST).
-parse(['var', 'x', ';', 'x', '<-', 1, ';', 'if', '(', 'x', '==', 0, ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], AST).
-parse(['var', 'x', ';', 'x', '<-', 1, ';', 'if', '(', '(', 'x', '<', 0, '&&', 'x', '>', 1, ')', ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], AST).
-parse(['var', 'x', ';', 'x', '<-', 1, ';', 'if', '(', '(', '(', 'x', '<=', 0, '&&', 'x', '>=', 1,')', '||', 'x', '==', 1, ')', ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], AST).
+parse(['var', 'x', ';', 'x', '<-', -1, ';', 'if', '(', 'x', '!=', 0, ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], AST), evaluate(AST, Result).
+
+parse(['var', 'x', ';', 'x', '<-', 1, ';', 'if', '(', 'x', '==', 0, ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], AST), evaluate(AST, Result).
+
+parse(['var', 'x', ';', 'x', '<-', 1, ';', 'if', '(', '(', 'x', '<', 0, '&&', 'x', '>', 1, ')', ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], AST), evaluate(AST, Result).
+
+?? false.
+parse(['var', 'x', ';', 'x', '<-', 1, ';', 'if', '(', '(', '(', 'x', '<=', 0, '&&', 'x', '>=', 1,')', '||', '(', 'x', '==', 1, ')', ')', ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], AST), evaluate(AST, Result).
 
 // if then else
-parse(['var', 'x', ';', 'x', '<-', 1, ';', 'if', '(', 'x', '<', 0, ')', 'then', 'x', '<-', 10, '.', 'else', 'x', '<-', 20, '.', 'endif', ';', 'return', 'x', '.'], AST).
+parse(['var', 'x', ';', 'x', '<-', 1, ';', 'if', '(', 'x', '<', 0, ')', 'then', 'x', '<-', 10, '.', 'else', 'x', '<-', 20, '.', 'endif', ';', 'return', 'x', '.'], AST), evaluate(AST, Result).
 
-parse(['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '<', 3, ')', 'then', 'out', '<-', 1, '.', 'else', 'out', '<-', 0, '.', 'endif', ';', 'return', 'out', '.'],AST).
+parse(['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '<', 3, ')', 'then', 'out', '<-', 1, '.', 'else', 'out', '<-', 0, '.', 'endif', ';', 'return', 'out', '.'], AST), evaluate(AST, Result).
 
-parse(['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '<=', 3, ')', 'then', 'out', '<-', 1, '.', 'endif', ';', 'return', 'out', '.'],AST).
+Should be false.
+parse(['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '<=', 3, ')', 'then', 'out', '<-', 1, '.', 'endif', ';', 'return', 'out', '.'], AST), evaluate(AST, Result).
 
-parse(['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '==', 5, ')', 'then', 'out', '<-', 1, '.', 'endif', ';', 'return', 'out', '.'],AST).
+parse(['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '==', 5, ')', 'then', 'out', '<-', 1, '.', 'endif', ';', 'return', 'out', '.'], AST), evaluate(AST, Result).
 
-parse(['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '>=', 3, ')', 'then', 'out', '<-', 1, '.', 'else', 'out', '<-', 0, '.', 'endif', ';', 'return', 'out', '.'],AST).
+parse(['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '>=', 3, ')', 'then', 'out', '<-', 1, '.', 'else', 'out', '<-', 0, '.', 'endif', ';', 'return', 'out', '.'], AST), evaluate(AST, Result).
 
 
+parse(['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '<', 3, ')', 'then', 'out', '<-', 1, '.', 'else', 'if', '(', 'x', '>', 3, ')', 'then', 'out', '<-', 2, '.', 'else', 'out', '<-', 0, '.', 'endif', '.', 'endif', ';', 'return', 'out', '.'],AST),evaluate(AST, Res).
+
+parse(['var', 'x', '<-', 3, ';', 'var', 'out', ';', 'if', '(', 'x', '<', 3, ')', 'then', 'out', '<-', 1, '.', 'else', 'if', '(', 'x', '>', 3, ')', 'then', 'out', '<-', 2, '.', 'else', 'out', '<-', 0, '.', 'endif', '.', 'endif', ';', 'return', 'out', '.'],AST),evaluate(AST, Res).
+
+??? (Possible invalid tokenlist)
+parse(['var', 'x', '<-', 3, ';', 'var', 'out', '<-', 10, ';', 'if', '(', 'x', '<', 3, ')', 'then', 'out', '<-', 1, '.', 'else', 'if', '(', 'x', '>', 3, ')', 'then', 'out', '<-', 2, '.', 'endif', '.', 'endif', ';', 'return', 'out', '.'],AST),evaluate(AST, Res).
+
+parse( ['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '<', 3, ')', 'then', 'out', '<-', 1, '.', 'else', 'if', '(', 'x', '>', 3, ')', 'then', 'out', '<-', 2, '.', 'else', 'out', '<-', 0, '.', 'endif', ';', 'out', '<-', '(', 'out', '+', 2, ')', '.', 'endif', ';', 'return', 'out', '.'], AST),evaluate(AST, Res).
+
+?? 4 or 1.
+parse( ['var', 'x', '<-', 5, ';', 'var', 'y', '<-', 3, ';', 'var', 'w', '<-', 1, ';', 'var', 'z', '<-', 2, ';', 'var', 'out', ';', 'if', '(', '(', '(', 'x', '>=', 3, '&&', 'y', '<=', 3, ')', '&&', '(', 'z', '==', 2, '&&', 'w', '==', 1, ')', ')', ')', 'then', 'out', '<-', 1, '.', 'else', 'if', '(', 'x', '>', 3, ')', 'then', 'out', '<-', 2, '.', 'else', 'out', '<-', 0, '.', 'endif', ';', 'out', '<-', '(', 'out', '+', 2, ')', '.', 'endif', ';', 'return', 'out', '.'], AST),evaluate(AST, Res).
 
 
 // while

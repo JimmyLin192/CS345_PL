@@ -232,7 +232,6 @@ validate(loop(COND, LOOP_BODY), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC)
 % validate function def: we have an late binding mechanism to cope with functions
 validate(funcDecl(FUNC_NAME, FUNC_ARG, FUNC_BODY), _, VARS, VARS, PRE_FUNC, POST_FUNC) :-
     \+ get_assoc(FUNC_NAME, PRE_FUNC, _),
-    \+ get_assoc(FUNC_NAME, VARS, _),
     put_assoc(FUNC_NAME, PRE_FUNC, funcInfo(FUNC_ARG, FUNC_BODY), POST_FUNC).
 
 % validate function call
@@ -480,14 +479,15 @@ test_FUNCTION :-
     test('T_FUNC_3', ['function', 'f', '(', 'x', ')', '{', 'return', '(','x', '+', 1, ')', '.', '}', ';', 'return', 'f', '(', 10 , ')', '.'], 11),
     test('T_FUNC_4', ['function', 'foo', '(', 'x', ')', '{', 'var', 'out', '<-', '(', 'x', '*', 2, ')', ';', 'return', 'out', '.', '}', ';', 'return', 'foo', '(', 2, ')', '.'], 4),
     test('T_FUNC_5', ['var', 'x', '<-', 1, ';', 'function', 'foo', '(', 'x', ')', '{', 'var', 'out', '<-', '(', 'x', '*', 2, ')', ';', 'return', 'out', '.', '}', ';', 'var', 'z', '<-', 'foo', '(', 'x', ')', ';', 'return', 'z', '.'], 2),
-    %%test('T_FUNC_6', ['var', 'x', '<-', 0, ';', 'function', 'x', '(', 'x', ')', '{', 'return', 'x', '.', '}', ';', 'return', 'x', '(', 'x', ')', '.'], 0),
+    test('T_FUNC_6', ['var', 'x', '<-', 0, ';', 'function', 'x', '(', 'x', ')', '{', 'return', 'x', '.', '}', ';', 'return', 'x', '(', 'x', ')', '.'], 0),
     writeln('').
 
 test_NESTED_FUNCTION :- 
     writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
     writeln('% Test Cases for NESTED_FUNCTION'),
     writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
-
+    %test('T_NESTED_FUNC_1', ['var', 'x', '<-', 0, ';', 'function', 'foo', '(', 'x', ')', '{', 'function', 'foo1', '(', 'y', ')', '{', 'return', 'x', '.', '}', ';', 'return', 'foo1', '(', 2, ')', '.', '}', ';', 'return', 'foo', '(', 1, ')', '.'], 1),
+    %test('T_NESTED_FUNC_2', ['var', 'x', '<-', 0, ';', 'function', 'foo', '(', 'z', ')', '{', 'function', 'foo1', '(', 'y', ')', '{', 'return', 'x', '.', '}', ';', 'return', 'foo1', '(', 2, ')', '.', '}', ';', 'return', 'foo', '(', 1, ')', '.'], 0),
     writeln('').
 
 
@@ -525,23 +525,4 @@ main :-
     test_NESTED_FUNCTION,
     test_STRESS,
     true.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

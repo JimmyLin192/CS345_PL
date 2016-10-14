@@ -201,7 +201,17 @@ validate(prog(PROGRAM, AST), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :-
 %% TESTING COMPONENTS 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-test(TokenList) :- parse(TokenList, AST), evaluate(AST, X), writeln(X).
 
-main :-
-    test(['var' ,'x' ,'<-' ,'(' ,3 ,'*' ,2 ,'*' ,4 ,')' ,';' ,'var' ,'y' ,'<-' ,'(' ,5 ,'+' ,6 ,'+' ,2 ,')' ,';' ,'var' ,'z' ,'<-' ,'(' ,3 ,'-' ,4 ,'-' ,2 ,')' ,';' ,'return' ,'(' ,'x' ,'/' ,'y' ,'/' ,'z' ,')' ,'.' ]).
+pass(Tokens, Expected) :- parse(Tokens, AST), evaluate(AST, X), X == Expected.
+failure(Tokens, Expected, Result) :- parse(Tokens, AST), evaluate(AST, X), X \== Expected, Result is X.
+test(Name, Tokens, Expected) :- pass(Tokens, Expected), write(Name), writeln(': Pass. ').
+test(Name, Tokens, Expected) :- failure(Tokens, Expected, Result), 
+                               write('['), write(Name), write(']'), write(': Fail. Result: '), write(Result), 
+                                write(', Expected: '), writeln(Expected).
+
+test_IF_THEN :-
+    test('T1', ['var', 'x', ';', 'x', '<-', -1, ';', 'if', '(', 'x', '!=', 0, ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], 10),
+    test('T2', ['var', 'x', ';', 'x', '<-', 1, ';', 'if', '(', 'x', '==', 0, ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], 1).
+
+main :- 
+    test_IF_THEN.

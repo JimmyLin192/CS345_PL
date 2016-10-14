@@ -76,14 +76,75 @@ left_assoc(EXP, TERM_A, division) --> term(TERM_B), ['*'], left_assoc(EXP, compu
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 evaluate(AST, Number) :- empty_assoc(VARIABLES), empty_assoc(FUNCTIONS), validate(AST, Number, VARIABLES, _, FUNCTIONS, _).
 
+%% evaluate all comparative computations
+eval_true(singcond(OPR_A, COMP_OP, OPR_B), _, VAR, VAR, FUNC, FUNC) :- 
+    COMP_OP == '>',
+    validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
+    validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), 
+    VAL_OPR_A > VAL_OPR_B.
+eval_true(singcond(OPR_A, COMP_OP, OPR_B), _, VAR, VAR, FUNC, FUNC) :- 
+    COMP_OP == '>=',
+    validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
+    validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), 
+    VAL_OPR_A >= VAL_OPR_B.
+eval_true(singcond(OPR_A, COMP_OP, OPR_B), _, VAR, VAR, FUNC, FUNC) :- 
+    COMP_OP == '<',
+    validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
+    validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), 
+    VAL_OPR_A < VAL_OPR_B.
+eval_true(singcond(OPR_A, COMP_OP, OPR_B), _, VAR, VAR, FUNC, FUNC) :- 
+    COMP_OP == '<=',
+    validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
+    validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), 
+    VAL_OPR_A =< VAL_OPR_B.
+eval_true(singcond(OPR_A, COMP_OP, OPR_B), _, VAR, VAR, FUNC, FUNC) :- 
+    COMP_OP == '==',
+    validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
+    validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), 
+    VAL_OPR_A == VAL_OPR_B.
+eval_true(singcond(OPR_A, COMP_OP, OPR_B), _, VAR, VAR, FUNC, FUNC) :- 
+    COMP_OP == '!=',
+    validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
+    validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), 
+    VAL_OPR_A \== VAL_OPR_B.
+eval_false(singcond(OPR_A, COMP_OP, OPR_B), _, VAR, VAR, FUNC, FUNC) :- 
+    COMP_OP == '>',
+    validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
+    validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), 
+    VAL_OPR_A =< VAL_OPR_B.
+eval_false(singcond(OPR_A, COMP_OP, OPR_B), _, VAR, VAR, FUNC, FUNC) :- 
+    COMP_OP == '>=',
+    validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
+    validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), 
+    VAL_OPR_A < VAL_OPR_B.
+eval_false(singcond(OPR_A, COMP_OP, OPR_B), _, VAR, VAR, FUNC, FUNC) :- 
+    COMP_OP == '<',
+    validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
+    validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), 
+    VAL_OPR_A >= VAL_OPR_B.
+eval_false(singcond(OPR_A, COMP_OP, OPR_B), _, VAR, VAR, FUNC, FUNC) :- 
+    COMP_OP == '<=',
+    validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
+    validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), 
+    VAL_OPR_A > VAL_OPR_B.
+eval_false(singcond(OPR_A, COMP_OP, OPR_B), _, VAR, VAR, FUNC, FUNC) :- 
+    COMP_OP == '==',
+    validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
+    validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), 
+    VAL_OPR_A \== VAL_OPR_B.
+eval_false(singcond(OPR_A, COMP_OP, OPR_B), _, VAR, VAR, FUNC, FUNC) :- 
+    COMP_OP == '!=',
+    validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
+    validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), 
+    VAL_OPR_A == VAL_OPR_B.
+
 % validate an empty program or statement
 validate([], _, VAR, VAR, FUNC, FUNC).
 % validate a literal number as it is
 validate(X, X, VAR, VAR, FUNC, FUNC) :- number(X).
 % validate a declared variable
 validate(X, OUTCOME, VAR, VAR, FUNC, FUNC) :- 
-    get_assoc(X, VAR, OUTCOME), 
-    OUTCOME \== empty.
+    get_assoc(X, VAR, OUTCOME), OUTCOME \== empty.
 % validate all arithmetic computations.
 validate(compute(addition, OPR_A, OPR_B), OUTCOME, VAR, VAR, FUNC, FUNC):- 
     validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
@@ -102,6 +163,7 @@ validate(compute(division, OPR_A, OPR_B), OUTCOME, VAR, VAR, FUNC, FUNC):-
     validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
     validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), 
     OUTCOME is VAL_OPR_A / VAL_OPR_B.
+
 % validate all logical computations
 %validate(mulcond(COND_A, LOG_OP, COND_B), OUTCOME, VAR, VAR, FUNC, FUNC):- 
 %    LOG_OP == ['&&'],
@@ -114,37 +176,6 @@ validate(compute(division, OPR_A, OPR_B), OUTCOME, VAR, VAR, FUNC, FUNC):-
 %    validate(COND_B, VAL_COND_B, VAR, VAR, FUNC, FUNC), 
 %    OUTCOME is VAL_COND_A + VAL_COND_B.
 %
-%% validate all comparative computations
-validate(singcond(OPR_A, _, OPR_B), _, VAR, VAR, FUNC, FUNC):- 
-    validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
-    validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), 
-    VAL_OPR_A > VAL_OPR_B.
-%validate(singcond(OPR_A, COMP_OP, OPR_B), OUTCOME, VAR, VAR, FUNC, FUNC):- 
-%    COMP_OP is ['>='], 
-%    validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
-%    validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), 
-%    OUTCOME is (VAL_OPR_A >= VAL_OPR_B).
-%validate(singcond(OPR_A, COMP_OP, OPR_B), OUTCOME, VAR, VAR, FUNC, FUNC):- 
-%    COMP_OP is ['<'], 
-%    validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
-%    validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), 
-%    OUTCOME is (VAL_OPR_A < VAL_OPR_B).
-%validate(singcond(OPR_A, COMP_OP, OPR_B), OUTCOME, VAR, VAR, FUNC, FUNC):- 
-%    COMP_OP is ['<='], 
-%    validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
-%    validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), 
-%    OUTCOME is (VAL_OPR_A =< VAL_OPR_B).
-%validate(singcond(OPR_A, COMP_OP, OPR_B), OUTCOME, VAR, VAR, FUNC, FUNC):- 
-%    COMP_OP is ['=='], 
-%    validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
-%    validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), 
-%    OUTCOME is (VAL_OPR_A =:= VAL_OPR_B).
-%validate(singcond(OPR_A, COMP_OP, OPR_B), OUTCOME, VAR, VAR, FUNC, FUNC):- 
-%    COMP_OP == ['!='], 
-%    validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
-%    validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), 
-%    OUTCOME is (VAL_OPR_A =\= VAL_OPR_B).
-
 % validate the return statement
 validate(retStatement(VALUE), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :- 
     validate(VALUE, OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC).
@@ -164,11 +195,11 @@ validate(decAssignment(NAME, VALUE), _, PRE_VAR, POST_VAR, PRE_FUNC, PRE_FUNC) :
     put_assoc(NAME, PRE_VAR, OUTCOME, POST_VAR).
 % validate the conditional
 validate(conditional(COND, BRANCH_IF), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :- 
-    validate(COND, _, PRE_VAR, PRE_VAR, PRE_FUNC, PRE_FUNC),
+    eval_true(COND, _, PRE_VAR, PRE_VAR, PRE_FUNC, PRE_FUNC),
     validate(BRANCH_IF, OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC).
-%validate(conditional(COND, _), _, PRE_VAR, _, PRE_FUNC, _) :- 
-%    \+ validate(COND, _, PRE_VAR, PRE_VAR, PRE_FUNC, PRE_FUNC).
-%COND_OUTCOME \== true.
+validate(prog(conditional(COND, _), PROGRAM), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :- 
+    eval_false(COND, _, PRE_VAR, PRE_VAR, PRE_FUNC, PRE_FUNC),
+    validate(PROGRAM, OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC).
 %validate(conditional(COND, IF_BRANCH, _), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :- 
 %    validate(COND, COND_OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC), 
 %    validate(IF_BRANCH, OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC), 

@@ -40,24 +40,8 @@ logical(LOGIC_OP) --> [LOGIC_OP], { logOp(LOGIC_OPERATORS), member(LOGIC_OP, LOG
 
 /* Element-wise rule definition */
 base(NAME) --> identity(NAME) | numerics(NAME) | ['('], expression(NAME), [')'].
-base(funcCall(FUNC_NAME, FUNC_ARG)) --> identity(FUNC_NAME), ['('], base(FUNC_ARG), [')'].  % func call
+base(funcCall(FUNC_NAME, FUNC_ACTUAL)) --> identity(FUNC_NAME), ['('], base(FUNC_ACTUAL), [')'].  % func call
 expression(EXP) --> term(EXP) | term(TERM), ['+'], left_assoc(EXP, TERM, addition) | term(TERM), ['-'], left_assoc(EXP, TERM, subtraction).
-term(TERM) --> factor(TERM) | 
-               factor(VALUE), ['*'], left_assoc(TERM, VALUE, multiplication) | 
-               factor(VALUE), ['/'], left_assoc(TERM, VALUE, division).
-
-factor(FACTOR) --> base(FACTOR).
-identity(NAME) --> [NAME], { 
-                             reserved(Keyword), \+ member(NAME, Keyword), 
-                             operators(Operator), \+ member(NAME, Operator),
-                             mathOp(MathOperator), \+ member(NAME, MathOperator),
-                             logOp(LogicOperator), \+ member(NAME, LogicOperator),
-                             comparators(Comparators), \+ member(NAME, Comparators),
-                             condWords(CondWords), \+ member(NAME, CondWords),
-                             loopWords(LoopWords), \+ member(NAME, LoopWords),
-                             \+ number(NAME)
-                           }.
-numerics(VALUE) --> [VALUE], { integer(VALUE) | float(VALUE) }.
 
 /* left_assoc for math compuation */
 % for every computational operators, 
@@ -77,10 +61,35 @@ left_assoc(compute(division,TERM_A,TERM_B), TERM_A, division) --> factor(TERM_B)
 left_assoc(EXP, TERM_A, division) --> term(TERM_B), ['/'], left_assoc(EXP, compute(division,TERM_A, TERM_B), division).
 left_assoc(EXP, TERM_A, division) --> term(TERM_B), ['*'], left_assoc(EXP, compute(division,TERM_A, TERM_B), multiplication).
 
+term(TERM) --> factor(TERM) | 
+               factor(VALUE), ['*'], left_assoc(TERM, VALUE, multiplication) | 
+               factor(VALUE), ['/'], left_assoc(TERM, VALUE, division).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-evaluate(AST, Number) :- empty_assoc(VARIABLES), empty_assoc(FUNCTIONS), validate(AST, Number, VARIABLES, _, FUNCTIONS, _).
+factor(FACTOR) --> base(FACTOR).
+identity(NAME) --> [NAME], { 
+                             reserved(Keyword), \+ member(NAME, Keyword), 
+                             operators(Operator), \+ member(NAME, Operator),
+                             mathOp(MathOperator), \+ member(NAME, MathOperator),
+                             logOp(LogicOperator), \+ member(NAME, LogicOperator),
+                             comparators(Comparators), \+ member(NAME, Comparators),
+                             condWords(CondWords), \+ member(NAME, CondWords),
+                             loopWords(LoopWords), \+ member(NAME, LoopWords),
+                             \+ number(NAME)
+                           }.
+numerics(VALUE) --> [VALUE], { integer(VALUE) | float(VALUE) }.
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%          EVALUATION OF AST          %%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+evaluate(AST, Number) :- 
+    empty_assoc(VARIABLES),  % initialize an empty association list for variables
+    empty_assoc(FUNCTIONS),  % initialize an empty association list for functions
+    validate(AST, Number, VARIABLES, _, FUNCTIONS, _).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% LOGIC COMPONENTS 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% evaluate all comparative computations
 eval_cond(singcond(OPR_A, COMP_OP, OPR_B), _, VAR, VAR, FUNC, FUNC) :- 
     COMP_OP == '>',
@@ -112,6 +121,10 @@ eval_cond(singcond(OPR_A, COMP_OP, OPR_B), _, VAR, VAR, FUNC, FUNC) :-
     validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
     validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), 
     VAL_OPR_A \== VAL_OPR_B.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% LOGIC COMPONENTS 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % validate all logical computations
 eval_cond(mulcond(COND_A, LOGIC_OP, COND_B), _, VAR, VAR, FUNC, FUNC):- 
     LOGIC_OP == '&&',
@@ -120,6 +133,9 @@ eval_cond(mulcond(COND_A, LOGIC_OP, COND_B), _, VAR, VAR, FUNC, FUNC):-
     LOGIC_OP == '||', 
     ( eval_cond(COND_A, _, VAR, VAR, FUNC, FUNC); eval_cond(COND_B, _, VAR, VAR, FUNC, FUNC) ). 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% BASE COMPONENTS 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % validate an empty program or statement
 validate([], _, VAR, VAR, FUNC, FUNC).
 % validate a literal number as it is
@@ -127,6 +143,10 @@ validate(X, X, VAR, VAR, FUNC, FUNC) :- number(X).
 % validate a declared variable
 validate(X, OUTCOME, VAR, VAR, FUNC, FUNC) :- 
     get_assoc(X, VAR, OUTCOME), OUTCOME \== empty.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ARITHMETIC COMPONENTS 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % validate all arithmetic computations.
 validate(compute(addition, OPR_A, OPR_B), OUTCOME, VAR, VAR, FUNC, FUNC):- 
     validate(OPR_A, VAL_OPR_A, VAR, VAR, FUNC, FUNC), 
@@ -147,6 +167,9 @@ validate(compute(division, OPR_A, OPR_B), OUTCOME, VAR, VAR, FUNC, FUNC):-
     validate(OPR_B, VAL_OPR_B, VAR, VAR, FUNC, FUNC), 
     OUTCOME is VAL_OPR_A / VAL_OPR_B.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% VARIABLE COMPONENTS 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % validate the return statement
 validate(retStatement(VALUE), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :- 
     validate(VALUE, OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC).
@@ -164,22 +187,31 @@ validate(decAssignment(NAME, VALUE), _, PRE_VAR, POST_VAR, PRE_FUNC, PRE_FUNC) :
     \+ get_assoc(NAME, PRE_VAR, _), 
     validate(VALUE, OUTCOME, PRE_VAR, _, PRE_FUNC, _), 
     put_assoc(NAME, PRE_VAR, OUTCOME, POST_VAR).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% CONDITIONAL COMPONENTS 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % validate the conditional
-% if-then-endif
+% a) general case: if-part of enterable if-then-endif statement
 validate(conditional(COND, IF_BRANCH), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :- 
     eval_cond(COND, _, PRE_VAR, PRE_VAR, PRE_FUNC, PRE_FUNC),
     validate(IF_BRANCH, OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC).
+% b) corner case: cope with non-enterable if-part of the if-then-endif statement
 validate(prog(conditional(COND, _), PROGRAM), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :- 
     \+ eval_cond(COND, _, PRE_VAR, PRE_VAR, PRE_FUNC, PRE_FUNC),
     validate(PROGRAM, OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC).
-% if-then-else-endif
+% c) general case: if-part of enterable if-then-else-endif statement
 validate(conditional(COND, IF_BRANCH, _), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :- 
     eval_cond(COND, _, PRE_VAR, PRE_VAR, PRE_FUNC, PRE_FUNC),
     validate(IF_BRANCH, OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC).
+% d) general case: else-part of enterable if-then-else-endif statement
 validate(conditional(COND, _, ELSE_BRANCH), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :- 
     \+ eval_cond(COND, _, PRE_VAR, PRE_VAR, PRE_FUNC, PRE_FUNC),
     validate(ELSE_BRANCH, OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC).
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% LOOP COMPONENTS 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % validate the loop
 validate(prog(loop(COND, _), PROGRAM), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :- 
     \+ eval_cond(COND, _, PRE_VAR, PRE_VAR, PRE_FUNC, PRE_FUNC),
@@ -194,6 +226,26 @@ validate(loop(COND, LOOP_BODY), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC)
     validate(LOOP_BODY, OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC), 
     \+ eval_cond(COND, _, POST_VAR, POST_VAR, POST_FUNC, POST_FUNC).
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% FUNCTION COMPONENTS 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% validate function def: we have an late binding mechanism to cope with functions
+validate(funcDecl(FUNC_NAME, FUNC_ARG, FUNC_BODY), _, PRE_VAR, PRE_VAR, PRE_FUNC, POST_FUNC) :-
+    \+ get_assoc(FUNC_NAME, PRE_FUNC, _),
+    \+ get_assoc(FUNC_NAME, PRE_VAR, _),
+    put_assoc(FUNC_NAME, PRE_FUNC, funcInfo(FUNC_ARG, FUNC_BODY), POST_FUNC).
+
+% validate function call
+validate(funcCall(FUNC_NAME, FUNC_ACTUAL), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :-
+    get_assoc(FUNC_NAME, PRE_FUNC, funcInfo(FUNC_ARG, FUNC_BODY)),
+    validate(FUNC_ACTUAL, ACTUAL, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC),
+    empty_assoc(EMPTY_NAMESPACE),
+    put_assoc(FUNC_ARG, PRE_VAR, ACTUAL, TEMP_NAMESPACE),
+    validate(FUNC_BODY, OUTCOME, TEMP_NAMESPACE, _, PRE_FUNC, POST_FUNC).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% STATEMENT SEQUENCE COMPONENTS 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % validate sseq
 validate(sseq(STATEMENT), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :- 
     validate(STATEMENT, OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC).
@@ -201,6 +253,9 @@ validate(sseq(STATEMENT, REMAINDERS), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST
     validate(STATEMENT, _, PRE_VAR, IME_VAR, PRE_FUNC, IME_FUNC), 
     validate(REMAINDERS, OUTCOME, IME_VAR, POST_VAR, IME_FUNC, POST_FUNC).
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% PROGRAM COMPONENTS 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % validate the single prog node
 validate(prog(PROGRAM), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :- 
     validate(PROGRAM, OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC).
@@ -240,7 +295,13 @@ test_WHILE :-
     true.
 
 test_FUNCTION :- 
+    parse(['function', 'f', '(', 'x', ')', '{', 'return', 'x', '.', '}', ';', 'return', 'f', '(', '(', 10, '+', 1, ')', ')', '.'], AST), writeln(AST),
     true.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% MAIN: ENTRY POINT 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 main :- 
     test_IF_THEN,

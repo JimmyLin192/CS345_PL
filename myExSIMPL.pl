@@ -274,13 +274,13 @@ writeTestName(Name) :- write('['), write(Name), write(']').
 test(Name, Tokens, Expected) :- 
     \+ parse(Tokens, _), 
     Expected == 'parse_fail', 
-    ansi_format([bold, fg(cyan)], '[~w]: Pass - Parse Fail As Expected. \n', [Name]).
+    ansi_format([faint, fg(cyan)], '[~w]: Pass - Parse Fail As Expected. \n', [Name]).
 
 test(Name, Tokens, Expected) :- 
     parse(Tokens, AST), 
     \+ evaluate(AST, _),  
     ( Expected == 'eval_fail' | Expected == 'evaluate_fail'), 
-        ansi_format([bold, fg(cyan)], '[~w]: Pass - Evaluate Fail As Expected. \n', [Name]).
+        ansi_format([faint, fg(cyan)], '[~w]: Pass - Evaluate Fail As Expected. \n', [Name]).
 
 test(Name, Tokens, Expected) :- 
     parse(Tokens, AST), evaluate(AST, X), (
@@ -289,7 +289,7 @@ test(Name, Tokens, Expected) :-
             write(' Result: '), write(X), 
             write(', Expected: '), writeln(Expected) )  
      |  ( X == Expected, 
-        ansi_format([bold, fg(cyan)], '[~w]: Pass. \n', [Name])
+        ansi_format([faint, fg(cyan)], '[~w]: Pass. \n', [Name])
         )).
 
 test_PARSE_FAIL :-

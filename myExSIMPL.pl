@@ -1,3 +1,5 @@
+:- initialization main.
+
 parse(TokenList, AST) :- phrase(program(AST), TokenList).
 /* Keyword Declarations */
 reserved([var, return, function]).          % reserved words
@@ -194,3 +196,12 @@ validate(prog(PROGRAM), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :-
 validate(prog(PROGRAM, AST), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :- 
     validate(PROGRAM, _, PRE_VAR, VAR_C, PRE_FUNC, FUNC_C), 
     validate(AST, OUTCOME, VAR_C, POST_VAR, FUNC_C, POST_FUNC).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% TESTING COMPONENTS 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+test(TokenList) :- parse(TokenList, AST), evaluate(AST, X), writeln(X).
+
+main :-
+    test(['var' ,'x' ,'<-' ,'(' ,3 ,'*' ,2 ,'*' ,4 ,')' ,';' ,'var' ,'y' ,'<-' ,'(' ,5 ,'+' ,6 ,'+' ,2 ,')' ,';' ,'var' ,'z' ,'<-' ,'(' ,3 ,'-' ,4 ,'-' ,2 ,')' ,';' ,'return' ,'(' ,'x' ,'/' ,'y' ,'/' ,'z' ,')' ,'.' ]).

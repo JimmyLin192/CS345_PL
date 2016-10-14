@@ -1,0 +1,29 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Programming Language Assignment 03: Group 6
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Student I
+Name: Xin Lin
+Email: jimmylin@utexas.edu
+EID: XL5224
+
+Student II
+Name: 
+Email: 
+EID: 
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Usage:
+a) Directly call 
+
+    ./runtest.sh
+
+to run all of our tests.
+
+b) All of our tests are set in the main entry of myExSIMPL.pl, to run it:
+
+    swipl -q -f myExSIMPL.pl
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -580,7 +580,7 @@ test_NESTED_FUNCTION :-
     writeln('').
 
 
-test_STRESS :-
+test_RECURSION :-
     writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
     writeln('% Test Cases for STRESS TESTING'),
     writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
@@ -613,6 +613,6 @@ main :-
     test_WHILE_DO_DONE,
     test_FUNCTION,
     test_NESTED_FUNCTION,
-    test_STRESS,
+    test_RECUSION,
     true.
 

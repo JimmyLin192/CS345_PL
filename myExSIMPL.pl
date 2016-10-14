@@ -297,6 +297,20 @@ test_PARSE_FAIL :-
     writeln('% Test Cases that should fail at the parsing stage. '),
     writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
     test('T_PARSE_FAIL_1', ['function', 'f', '(', 'x', ',', 'y', ')', '{', 'return', 'x', '.', '}', ';', 'return', 'f', '(', 10 , ')', '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_2', ['var', 'function', ';', '+', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_3', ['var', 'if', ';', '+', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_4', ['var', 'then', ';', '+', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_5', ['var', 'else', ';', '+', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_6', ['var', 'endif', ';', '+', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_8', ['var', 'while', ';', '+', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_9', ['var', '<', ';', '+', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_10', ['var', '>', ';', '+', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_11', ['var', '<=', ';', '+', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_12', ['var', '>=', ';', '+', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_13', ['var', '==', ';', '+', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_14', ['var', '!=', ';', '+', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_15', ['var', '||', ';', '+', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
+    test('T_PARSE_FAIL_16', ['var', '&&', ';', '+', '<-', 100, ';', 'return', 10, '.'], 'parse_fail'),
     writeln('').
 
 
@@ -307,6 +321,7 @@ test_EVAL_FAIL :-
     test('T_EVAL_FAIL_1', ['return', 'x', '.'], 'eval_fail'),
     test('T_EVAL_FAIL_2', ['return', 'f', '(', 10 , ')', '.'], 'eval_fail'),
     test('T_EVAL_FAIL_3', ['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '<=', 3, ')', 'then', 'out', '<-', 1, '.', 'endif', ';', 'return', 'out', '.'], 'eval_fail'),
+    test('T_EVAL_FAIL_4', ['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '>=', 6, ')', 'then', 'out', '<-', 1, '.', 'endif', ';', 'return', 'out', '.'], 'eval_fail'),
     writeln('').
 
 test_PAREN :-
@@ -362,6 +377,28 @@ test_ARITHMETIC :-
     test('T_ARITHMETIC_52', ['return', '(', 2.5, '-', 1.01, '+', '(', 3, '*', 1.5, ')', ')', '.'], 5.99),
     test('T_ARITHMETIC_53', ['var', 'x', '<-', '(', 3, '*', 2, '-', 4, ')', ';', 'var', 'y', '<-', '(', 5, '+', 6, '/', 2, ')', ';', 'var', 'z', '<-', '(', 3, '*', 4, '/', 2, ')', ';', 'return', '(', 'x', '-', 'y', '*', 'z', ')', '.'], -46),
     test('T_ARITHMETIC_54', ['var', 'x', '<-', '(', 3, '*', 2, '*', 4, ')', ';', 'var', 'y', '<-', '(', 5, '+', 6, '+', 2, ')', ';' , 'var', 'z', '<-', '(', 3, '-', 4, '-', 2, ')', ';', 'return', '(', 'x', '/', 'y', '/', 'z', ')', '.'], -0.6153846153846154),
+    writeln('').
+
+test_LOGIC :-
+    writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
+    writeln('% Test Cases for LOGIC'),
+    writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
+    test('T_LOGIC_1', ['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '<', 10, ')', 'then', 'out', '<-', 1, '.', 'endif', ';', 'return', 'out', '.'], 1),
+    test('T_LOGIC_2', ['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '>', 3, ')', 'then', 'out', '<-', 1, '.', 'endif', ';', 'return', 'out', '.'], 1),
+    test('T_LOGIC_3', ['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '==', 5, ')', 'then', 'out', '<-', 1, '.', 'endif', ';', 'return', 'out', '.'], 1),
+    test('T_LOGIC_4', ['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '!=', 10, ')', 'then', 'out', '<-', 1, '.', 'endif', ';', 'return', 'out', '.'], 1),
+    test('T_LOGIC_5', ['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '<=', 10, ')', 'then', 'out', '<-', 1, '.', 'endif', ';', 'return', 'out', '.'], 1),
+    test('T_LOGIC_6', ['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '<=', 5, ')', 'then', 'out', '<-', 1, '.', 'endif', ';', 'return', 'out', '.'], 1),
+    test('T_LOGIC_7', ['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '>=', 2, ')', 'then', 'out', '<-', 1, '.', 'endif', ';', 'return', 'out', '.'], 1),
+    test('T_LOGIC_8', ['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '>=', 5, ')', 'then', 'out', '<-', 1, '.', 'endif', ';', 'return', 'out', '.'], 1),
+    test('T_LOGIC_9', ['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '<', 3, ')', 'then', 'out', '<-', 1, '.', 'else', 'out', '<-', 0, '.', 'endif', ';', 'return', 'out', '.'], 0),
+    test('T_LOGIC_10', ['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '>', 10, ')', 'then', 'out', '<-', 1, '.', 'else', 'out', '<-', 0, '.', 'endif', ';', 'return', 'out', '.'], 0),
+    test('T_LOGIC_11', ['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '<=', 3, ')', 'then', 'out', '<-', 1, '.', 'else', 'out', '<-', 0, '.', 'endif', ';', 'return', 'out', '.'], 0),
+    test('T_LOGIC_12', ['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '>=', 10, ')', 'then', 'out', '<-', 1, '.', 'else', 'out', '<-', 0, '.', 'endif', ';', 'return', 'out', '.'], 0),
+    test('T_LOGIC_13', ['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '==', 3, ')', 'then', 'out', '<-', 1, '.', 'else', 'out', '<-', 0, '.', 'endif', ';', 'return', 'out', '.'], 0),
+    test('T_LOGIC_14', ['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '!=', 5, ')', 'then', 'out', '<-', 1, '.', 'else', 'out', '<-', 0, '.', 'endif', ';', 'return', 'out', '.'], 0),
+    test('T_LOGIC_15', ['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '<', 3, ')', 'then', 'out', '<-', 1, '.', 'else', 'if', '(', 'x', '>', 3, ')', 'then', 'out', '<-', 2, '.', 'else', 'out', '<-', 0, '.', 'endif', '.', 'endif', ';', 'return', 'out', '.'], 2),
+    test('T_LOGIC_16', ['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '<', 3, ')', 'then', 'out', '<-', 1, '.', 'else', 'if', '(', 'x', '>', 3, ')', 'then', 'out', '<-', 2, '.', 'else', 'out', '<-', 0, '.', 'endif', ';', 'out', '<-', '(', 'out', '+', 2, ')', '.', 'endif', ';', 'return', 'out', '.'], 4),
     writeln('').
 
 test_IF_THEN :-
@@ -422,6 +459,7 @@ main :-
     test_EVAL_FAIL,
     test_PAREN,
     test_ARITHMETIC,
+    test_LOGIC,
     test_IF_THEN,
     test_IF_THEN_ELSE,
     test_WHILE_DO_DONE,

@@ -230,9 +230,9 @@ validate(loop(COND, LOOP_BODY), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC)
 %% FUNCTION COMPONENTS 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % validate function def: we have an late binding mechanism to cope with functions
-validate(funcDecl(FUNC_NAME, FUNC_ARG, FUNC_BODY), _, PRE_VAR, PRE_VAR, PRE_FUNC, POST_FUNC) :-
+validate(funcDecl(FUNC_NAME, FUNC_ARG, FUNC_BODY), _, VARS, VARS, PRE_FUNC, POST_FUNC) :-
     \+ get_assoc(FUNC_NAME, PRE_FUNC, _),
-    \+ get_assoc(FUNC_NAME, PRE_VAR, _),
+    \+ get_assoc(FUNC_NAME, VARS, _),
     put_assoc(FUNC_NAME, PRE_FUNC, funcInfo(FUNC_ARG, FUNC_BODY), POST_FUNC).
 
 % validate function call
@@ -240,7 +240,7 @@ validate(funcCall(FUNC_NAME, FUNC_ACTUAL), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC,
     get_assoc(FUNC_NAME, PRE_FUNC, funcInfo(FUNC_ARG, FUNC_BODY)),
     validate(FUNC_ACTUAL, ACTUAL, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC),
     empty_assoc(EMPTY_NAMESPACE),
-    put_assoc(FUNC_ARG, PRE_VAR, ACTUAL, TEMP_NAMESPACE),
+    put_assoc(FUNC_ARG, EMPTY_NAMESPACE, ACTUAL, TEMP_NAMESPACE),
     validate(FUNC_BODY, OUTCOME, TEMP_NAMESPACE, _, PRE_FUNC, POST_FUNC).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -268,11 +268,28 @@ validate(prog(PROGRAM, AST), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :-
 %% TESTING COMPONENTS 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-test(Name, Tokens, Expected) :- parse(Tokens, AST), evaluate(AST, X),  
-                    ( X \== Expected, write('['), write(Name), write(']'), write(': Fail. Result: '), write(X), 
-                      write(', Expected: '), writeln(Expected) ; 
-                      parse(Tokens, AST), evaluate(AST, X), X == Expected, 
-                      write('['), write(Name), write(']'), writeln(': Pass. ') ).
+writeTestName(Name) :- write('['), write(Name), write(']').
+
+test(Name, Tokens, Expected) :- 
+    \+ parse(Tokens, _), 
+    Expected == 'parse_fail', 
+    writeTestName(Name), 
+    writeln(': Pass - Parse Fail As Expected.').
+
+test(Name, Tokens, Expected) :- 
+    parse(Tokens, AST), 
+    \+ evaluate(AST, _),  
+    ( Expected == 'eval_fail' | Expected == 'evaluate_fail'), 
+    writeTestName(Name), 
+    writeln(': Pass - Evaluate Fail As Expected.').
+
+test(Name, Tokens, Expected) :- 
+    parse(Tokens, AST), evaluate(AST, X), (
+        ( X \== Expected, 
+            writeTestName(Name), write(': Fail. Result: '), write(X), 
+            write(', Expected: '), writeln(Expected) )  
+     |  ( X == Expected, 
+            writeTestName(Name), writeln(': Pass. '))).
 
 test_IF_THEN :-
     test('T1', ['var', 'x', ';', 'x', '<-', -1, ';', 'if', '(', 'x', '!=', 0, ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], 10),
@@ -294,8 +311,11 @@ test_WHILE :-
     test('T_WHILE_22', ['var', 'x', '<-', 0, ';', 'while', '(', '(', 'x', '<=', 500, '||', '(', '(', 'x', '<', 125, '||', 'x', '<', 25, ')', '||', 'x', '<', 100, ')', ')',')', 'do', 'x', '<-', '(','x', '+', 1,')', '.', 'done', ';', 'return', 'x', '.'], 501),
     true.
 
-test_FUNCTION :- 
-    parse(['function', 'f', '(', 'x', ')', '{', 'return', 'x', '.', '}', ';', 'return', 'f', '(', '(', 10, '+', 1, ')', ')', '.'], AST), writeln(AST),
+test_FUNCTION_ :- 
+    test('T_FUNC_1', ['function', 'f', '(', 'x', ')', '{', 'return', 'x', '.', '}', ';', 'return', 'f', '(', 10 , ')', '.'], 10),
+    test('T_FUNC_2', ['function', 'f', '(', 'x', ')', '{', 'return', 'x', '.', '}', ';', 'return', 'f', '(', '(', 10, '+', 1, ')', ')', '.'], 11),
+    test('T_FUNC_3', ['function', 'f', '(', 'x', ')', '{', 'return', '(','x', '+', 1, ')', '.', '}', ';', 'return', 'f', '(', 10 , ')', '.'], 11),
+    test('T_FUNC_fail_1', ['function', 'f', '(', 'x', ',', 'y', ')', '{', 'return', 'x', '.', '}', ';', 'return', 'f', '(', 10 , ')', '.'], 'parse_fail'),
     true.
 
 
@@ -306,5 +326,5 @@ test_FUNCTION :-
 main :- 
     test_IF_THEN,
     test_WHILE,
-    test_FUNCTION,
+    test_FUNCTION_,
     true.

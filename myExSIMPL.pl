@@ -47,6 +47,7 @@ expression(EXP) --> term(EXP) | term(TERM), ['+'], left_assoc(EXP, TERM, additio
 % for every computational operators, 
 % the first rule is the terminal rule (not generating more non-terminal)
 % while the second rule is the recursive rule
+% Reference: Project Handout
 left_assoc(compute(addition,TERM_A,TERM_B), TERM_A, addition) --> term(TERM_B).
 left_assoc(EXP, TERM_A, addition) --> term(TERM_B), ['+'], left_assoc(EXP, compute(addition, TERM_A, TERM_B), addition).
 left_assoc(EXP, TERM_A, addition) --> term(TERM_B), ['-'], left_assoc(EXP, compute(addition, TERM_A, TERM_B), subtraction).
@@ -237,10 +238,31 @@ validate(funcDecl(FUNC_NAME, FUNC_ARG, FUNC_BODY), _, VARS, VARS, PRE_FUNC, POST
 % validate function call
 validate(funcCall(FUNC_NAME, FUNC_ACTUAL), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :-
     get_assoc(FUNC_NAME, PRE_FUNC, funcInfo(FUNC_ARG, FUNC_BODY)),
+    validate(FUNC_ACTUAL, ACTUAL, PRE_VAR, PRE_VAR, PRE_FUNC, PRE_FUNC),
+    (
+       ( \+ get_assoc(FUNC_ARG, PRE_VAR, _),
+        put_assoc(FUNC_ARG, PRE_VAR, ACTUAL, TEMP_NAMESPACE),
+        validate(FUNC_BODY, OUTCOME, TEMP_NAMESPACE, _, PRE_FUNC, POST_FUNC) 
+       ) | (
+        get_assoc(FUNC_ARG, PRE_VAR, PREVIOUS_VAL),
+        empty_assoc(EMPTY_NAMESPACE),
+        put_assoc(FUNC_ARG, EMPTY_NAMESPACE, ACTUAL, TEMP_NAMESPACE),
+        validate(FUNC_BODY, OUTCOME, TEMP_NAMESPACE, _, PRE_FUNC, POST_FUNC) 
+        )
+    ).
+
+    /* validate(funcCall(FUNC_NAME, FUNC_ACTUAL), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :-
+    get_assoc(FUNC_NAME, PRE_FUNC, funcInfo(FUNC_ARG, FUNC_BODY)),
+    validate(FUNC_ACTUAL, ACTUAL, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC),
+    put_assoc(FUNC_ARG, PRE_VAR, ACTUAL, TEMP_NAMESPACE),
+    validate(FUNC_BODY, OUTCOME, TEMP_NAMESPACE, _, PRE_FUNC, POST_FUNC).  */
+/*
+validate(funcCall(FUNC_NAME, FUNC_ACTUAL), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :-
+    get_assoc(FUNC_NAME, PRE_FUNC, funcInfo(FUNC_ARG, FUNC_BODY)),
     validate(FUNC_ACTUAL, ACTUAL, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC),
     empty_assoc(EMPTY_NAMESPACE),
     put_assoc(FUNC_ARG, EMPTY_NAMESPACE, ACTUAL, TEMP_NAMESPACE),
-    validate(FUNC_BODY, OUTCOME, TEMP_NAMESPACE, _, PRE_FUNC, POST_FUNC).
+    validate(FUNC_BODY, OUTCOME, TEMP_NAMESPACE, _, PRE_FUNC, POST_FUNC).  */
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% STATEMENT SEQUENCE COMPONENTS 
@@ -268,6 +290,8 @@ validate(prog(PROGRAM, AST), OUTCOME, PRE_VAR, POST_VAR, PRE_FUNC, POST_FUNC) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Reference: https://docs.google.com/document/d/1skDFXKI4ZRn14-Al5T6zraJLV6xaqFfmx-6oUQXXmyA/edit
 
+myequal(A,B) :- (A == B) | (LHS is 1.0*A, RHS is 1.0*B, LHS == RHS).
+
 writeTestName(Name) :- write('['), write(Name), write(']').
 
 test(Name, Tokens, Expected) :- 
@@ -282,14 +306,10 @@ test(Name, Tokens, Expected) :-
         ansi_format([bold, fg(cyan)], '[~w]: Pass - Evaluate Fail As Expected. \n', [Name]).
 
 test(Name, Tokens, Expected) :- 
-    parse(Tokens, AST), evaluate(AST, X), (
-        ( X \== Expected, 
-            ansi_format([bold, fg(red)], '[~w]: Fail.', [Name]),
-            write(' Result: '), write(X), 
-            write(', Expected: '), writeln(Expected) )  
-     |  ( X == Expected, 
-        ansi_format([bold, fg(cyan)], '[~w]: Pass. \n', [Name])
-        )).
+    parse(Tokens, AST), evaluate(AST, X),  (
+        ( \+ myequal(X, Expected), ansi_format([bold, fg(red)], '[~w]: Fail.', [Name]),
+            write(' Result: '), write(X), write(', Expected: '), writeln(Expected) )  
+     |  ( myequal(X, Expected), ansi_format([bold, fg(cyan)], '[~w]: Pass. \n', [Name]))).
 
 test_PARSE_FAIL :-
     writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
@@ -359,7 +379,7 @@ test_ARITHMETIC :-
     test('T_ARITHMETIC_31', ['return','(',1,-,1,+,1,+,10,')','.'], 11),
     test('T_ARITHMETIC_32', ['return','(',10,'-',1,'+',2,'*',10,')','.'],  29),
     test('T_ARITHMETIC_33', ['return','(',10,'-',10,'/',2,'+',10,')','.'], 15),
-    test('T_ARITHMETIC_34', ['return','(',10,'-',10,'*',5,'-',10,')','.'], -50),
+    test('T_ARITHMETIC_34', ['return','(',10,'-',10,'*',5,'-',10,')','.'], -50.0),
     test('T_ARITHMETIC_35', ['return','(',10,'+',10,'-',5,'-',10,')','.'], 5),
     test('T_ARITHMETIC_36', ['return','(',10,'+',10,'-',5,'+',10,')','.'], 25),
     test('T_ARITHMETIC_37', ['return','(',1,'+',10,'-',5,'+',10,'-',11,')','.'], 5),
@@ -438,7 +458,7 @@ test_IF_THEN :-
     test('T_IF_THEN_1', ['var', 'x', ';', 'x', '<-', -1, ';', 'if', '(', 'x', '!=', 0, ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], 10),
     test('T_IF_THEN_2', ['var', 'x', ';', 'x', '<-', 1, ';', 'if', '(', 'x', '==', 0, ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], 1),
     test('T_IF_THEN_3', ['var', 'x', ';', 'x', '<-', 1, ';', 'if', '(', '(', 'x', '<', 0, '&&', 'x', '>', 1, ')', ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], 1),
-    %% test('T_IF_THEN_4', ['var', 'x', ';', 'x', '<-', 1, ';', 'if', '(', '(', '(', 'x', '<=', 0, '&&', 'x', '>=', 1,')', '||', '(', 'x', '==', 1, ')', ')', ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], 10),
+    test('T_IF_THEN_4', ['var', 'x', ';', 'x', '<-', 1, ';', 'if', '(', '(', '(', 'x', '<=', 0, '&&', 'x', '>=', 1,')', '||', 'x', '==', 1, ')', ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], 10),
     writeln('').
 
 test_IF_THEN_ELSE :-
@@ -486,8 +506,9 @@ test_NESTED_FUNCTION :-
     writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
     writeln('% Test Cases for NESTED_FUNCTION'),
     writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
-    %test('T_NESTED_FUNC_1', ['var', 'x', '<-', 0, ';', 'function', 'foo', '(', 'x', ')', '{', 'function', 'foo1', '(', 'y', ')', '{', 'return', 'x', '.', '}', ';', 'return', 'foo1', '(', 2, ')', '.', '}', ';', 'return', 'foo', '(', 1, ')', '.'], 1),
-    %test('T_NESTED_FUNC_2', ['var', 'x', '<-', 0, ';', 'function', 'foo', '(', 'z', ')', '{', 'function', 'foo1', '(', 'y', ')', '{', 'return', 'x', '.', '}', ';', 'return', 'foo1', '(', 2, ')', '.', '}', ';', 'return', 'foo', '(', 1, ')', '.'], 0),
+    test('T_NESTED_FUNC_NAME_REAPT', ['var', 'x', '<-', 0, ';', 'function', 'foo', '(', 'z', ')', '{', 'function', 'foo', '(', 'y', ')', '{', 'return', 'x', '.', '}', ';', 'return', 'foo1', '(', 2, ')', '.', '}', ';', 'return', 'foo', '(', 1, ')', '.'], 'eval_fail'),
+    test('T_NESTED_FUNC_1', ['var', 'x', '<-', 0, ';', 'function', 'foo', '(', 'x', ')', '{', 'function', 'foo1', '(', 'y', ')', '{', 'return', 'x', '.', '}', ';', 'return', 'foo1', '(', 2, ')', '.', '}', ';', 'return', 'foo', '(', 1, ')', '.'], 1),
+    test('T_NESTED_FUNC_2', ['var', 'x', '<-', 0, ';', 'function', 'foo', '(', 'z', ')', '{', 'function', 'foo1', '(', 'y', ')', '{', 'return', 'x', '.', '}', ';', 'return', 'foo1', '(', 2, ')', '.', '}', ';', 'return', 'foo', '(', 1, ')', '.'], 0),
     writeln('').
 
 

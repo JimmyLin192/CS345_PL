@@ -577,6 +577,10 @@ test_NESTED_FUNCTION :-
     test('T_NESTED_FUNC_NAME_REAPT', ['var', 'x', '<-', 0, ';', 'function', 'foo', '(', 'z', ')', '{', 'function', 'foo', '(', 'y', ')', '{', 'return', 'x', '.', '}', ';', 'return', 'foo1', '(', 2, ')', '.', '}', ';', 'return', 'foo', '(', 1, ')', '.'], 'eval_fail'),
     test('T_NESTED_FUNC_1', ['var', 'x', '<-', 0, ';', 'function', 'foo', '(', 'x', ')', '{', 'function', 'foo1', '(', 'y', ')', '{', 'return', 'x', '.', '}', ';', 'return', 'foo1', '(', 2, ')', '.', '}', ';', 'return', 'foo', '(', 1, ')', '.'], 1),
     test('T_NESTED_FUNC_2', ['var', 'x', '<-', 0, ';', 'function', 'foo', '(', 'z', ')', '{', 'function', 'foo1', '(', 'y', ')', '{', 'return', 'x', '.', '}', ';', 'return', 'foo1', '(', 2, ')', '.', '}', ';', 'return', 'foo', '(', 1, ')', '.'], 0),
+    test('T_NESTED_FUNC_3', ['function', 'A', '(', 'a', ')', '{', 'function', 'B', '(', 'b', ')', '{', 'function', 'C', '(', 'c', ')', '{', 'function', 'D', '(', 'd', ')', '{', 'return', 'F', '(', 4, ')', '.', '}', ';', 'return', 'D', '(', 3, ')', '.', '}', ';', 'return', 'C', '(', 2, ')', '.', '}', ';', 'function', 'F', '(', 'f', ')', '{', 'function', 'G', '(', 'g', ')', '{', 'return', '(', 'c', ')', '.', '}', ';', 'return', 'G', '(', 5, ')', '.', '}', ';', 'return', 'B', '(', 1, ')', '.', '}', ';', 'function', 'E', '(', 'e', ')', '{', 'return', 'F', '(', 0, ')', '.', '}', ';', 'return', 'A', '(', 0, ')', '.'], 2),
+    %%test('T_NESTED_FUNC_4', ['function', 'A', '(', 'a', ')', '{', 'function', 'B', '(', 'b', ')', '{', 'function', 'C', '(', 'c', ')', '{', 'function', 'D', '(', 'd', ')', '{', 'return', 'F', '(', 4, ')', '.', '}', ';', 'return', 'D', '(', 3, ')', '.', '}', ';', 'return', 'C', '(', 2, ')', '.', '}', ';', 'function', 'F', '(', 'f', ')', '{', 'function', 'G', '(', 'g', ')', '{', 'return', '(', 'c', ')', '.', '}', ';', 'return', 'G', '(', 5, ')', '.', '}', ';', 'return', 'B', '(', 1, ')', '.', '}', ';', 'function', 'E', '(', 'e', ')', '{', 'return', 'F', '(', 0, ')', '.', '}', ';', 'return', 'E', '(', 0, ')', '.'], 'eval_fail'),
+    %%test('T_NESTED_FUNC_5', ['function', 'A', '(', 'a', ')', '{', 'function', 'B', '(', 'b', ')', '{', 'function', 'C', '(', 'c', ')', '{', 'function', 'D', '(', 'd', ')', '{', 'return', 'F', '(', 4, ')', '.', '}', ';', 'return', 'D', '(', 3, ')', '.', '}', ';', 'return', 'C', '(', 2, ')', '.', '}', ';', 'function', 'F', '(', 'f', ')', '{', 'function', 'G', '(', 'g', ')', '{', 'return', '(', 'c', ')', '.', '}', ';', 'return', 'G', '(', 5, ')', '.', '}', ';', 'return', 'C', '(', 1, ')', '.', '}', ';', 'function', 'E', '(', 'e', ')', '{', 'return', 'F', '(', 0, ')', '.', '}', ';', 'return', 'A', '(', 0, ')', '.'], 'eval_fail'),
+    %%test('T_NESTED_FUNC_6', ['function', 'A', '(', 'a', ')', '{', 'function', 'B', '(', 'b', ')', '{', 'function', 'C', '(', 'c', ')', '{', 'function', 'D', '(', 'd', ')', '{', 'return', 'F', '(', 4, ')', '.', '}', ';', 'return', 'D', '(', 3, ')', '.', '}', ';', 'return', 'F', '(', 2, ')', '.', '}', ';', 'function', 'F', '(', 'f', ')', '{', 'function', 'G', '(', 'g', ')', '{', 'return', '(', 'c', ')', '.', '}', ';', 'return', 'C', '(', 5, ')', '.', '}', ';', 'return', 'B', '(', 1, ')', '.', '}', ';', 'function', 'E', '(', 'e', ')', '{', 'return', 'F', '(', 0, ')', '.', '}', ';', 'return', 'A', '(', 0, ')', '.'], 'eval_fail'),
     writeln('').
 
 
@@ -613,6 +617,6 @@ main :-
     test_WHILE_DO_DONE,
     test_FUNCTION,
     test_NESTED_FUNCTION,
-    test_RECUSION,
+    test_RECURSION,
     true.
 

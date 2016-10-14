@@ -303,15 +303,28 @@ test_EVAL_FAIL :-
     writeln('% Test Cases that should fail at evaluation stage. '),
     writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
     test('T_EVAL_FAIL_1', ['return', 'x', '.'], 'eval_fail'),
-    test('T_EVAL_FAIL_1', ['return', 'f', '(', 10 , ')', '.'], 'eval_fail'),
+    test('T_EVAL_FAIL_2', ['return', 'f', '(', 10 , ')', '.'], 'eval_fail'),
+    test('T_EVAL_FAIL_3', ['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '<=', 3, ')', 'then', 'out', '<-', 1, '.', 'endif', ';', 'return', 'out', '.'], 'eval_fail'),
+    writeln('').
+
+test_ARITHMETIC :-
+    writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
+    writeln('% Test Cases for ARITHMETIC'),
+    writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
+    test('T_ARITHMETIC_1', ['return', '(', 64, '/', 2, '/', 8, ')', '.'], 4),
+    test('T_ARITHMETIC_2', ['return', '(', 2.5, '-', 1.01, '+', '(', 3, '*', 1.5, ')', ')', '.'], 5.99),
+    test('T_ARITHMETIC_3', ['var', 'x', '<-', '(', 3, '*', 2, '-', 4, ')', ';', 'var', 'y', '<-', '(', 5, '+', 6, '/', 2, ')', ';', 'var', 'z', '<-', '(', 3, '*', 4, '/', 2, ')', ';', 'return', '(', 'x', '-', 'y', '*', 'z', ')', '.'], -46),
+    test('T_ARITHMETIC_4', ['var', 'x', '<-', '(', 3, '*', 2, '*', 4, ')', ';', 'var', 'y', '<-', '(', 5, '+', 6, '+', 2, ')', ';' , 'var', 'z', '<-', '(', 3, '-', 4, '-', 2, ')', ';', 'return', '(', 'x', '/', 'y', '/', 'z', ')', '.'], -0.6153846153846154),
     writeln('').
 
 test_IF_THEN :-
     writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
-    writeln('% Test Cases for IF THEN '),
+    writeln('% Test Cases for IF THEN'),
     writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
     test('T_IF_THEN_1', ['var', 'x', ';', 'x', '<-', -1, ';', 'if', '(', 'x', '!=', 0, ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], 10),
     test('T_IF_THEN_2', ['var', 'x', ';', 'x', '<-', 1, ';', 'if', '(', 'x', '==', 0, ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], 1),
+    test('T_IF_THEN_3', ['var', 'x', ';', 'x', '<-', 1, ';', 'if', '(', '(', 'x', '<', 0, '&&', 'x', '>', 1, ')', ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], 1),
+    %% test('T_IF_THEN_4', ['var', 'x', ';', 'x', '<-', 1, ';', 'if', '(', '(', '(', 'x', '<=', 0, '&&', 'x', '>=', 1,')', '||', '(', 'x', '==', 1, ')', ')', ')', 'then', 'x', '<-', 10, '.', 'endif', ';', 'return', 'x', '.'], 10),
     writeln('').
 
 test_IF_THEN_ELSE :-
@@ -319,6 +332,10 @@ test_IF_THEN_ELSE :-
     writeln('% Test Cases for IF THEN ELSE'),
     writeln('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'),
     test('T_IF_THEN_ELSE_1', ['var', 'x', ';', 'x', '<-', 1, ';', 'if', '(', 'x', '<', 0, ')', 'then', 'x', '<-', 10, '.', 'else', 'x', '<-', 20, '.', 'endif', ';', 'return', 'x', '.'], 20),
+    test('T_IF_THEN_ELSE_2', ['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '<', 3, ')', 'then', 'out', '<-', 1, '.', 'else', 'out', '<-', 0, '.', 'endif', ';', 'return', 'out', '.'], 0),
+    test('T_IF_THEN_ELSE_3', ['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '>=', 3, ')', 'then', 'out', '<-', 1, '.', 'else', 'out', '<-', 0, '.', 'endif', ';', 'return', 'out', '.'], 1),
+    test('T_IF_THEN_ELSE_4', ['var', 'x', '<-', 3, ';', 'var', 'out', ';', 'if', '(', 'x', '<', 3, ')', 'then', 'out', '<-', 1, '.', 'else', 'if', '(', 'x', '>', 3, ')', 'then', 'out', '<-', 2, '.', 'else', 'out', '<-', 0, '.', 'endif', '.', 'endif', ';', 'return', 'out', '.'], 0),
+    test('T_IF_THEN_ELSE_5', ['var', 'x', '<-', 5, ';', 'var', 'out', ';', 'if', '(', 'x', '<', 3, ')', 'then', 'out', '<-', 1, '.', 'else', 'if', '(', 'x', '>', 3, ')', 'then', 'out', '<-', 2, '.', 'else', 'out', '<-', 0, '.', 'endif', ';', 'out', '<-', '(', 'out', '+', 2, ')', '.', 'endif', ';', 'return', 'out', '.'], 4),
     writeln('').
 
 test_WHILE_DO_DONE :-
@@ -356,7 +373,9 @@ test_FUNCTION :-
 main :- 
     test_PARSE_FAIL,
     test_EVAL_FAIL,
+    test_ARITHMETIC,
     test_IF_THEN,
+    test_IF_THEN_ELSE,
     test_WHILE_DO_DONE,
     test_FUNCTION,
     true.

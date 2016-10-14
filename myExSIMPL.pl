@@ -141,6 +141,7 @@ eval_cond(mulcond(COND_A, LOGIC_OP, COND_B), _, VAR, VAR, FUNC, FUNC):-
 validate([], _, VAR, VAR, FUNC, FUNC).
 % validate a literal number as it is
 validate(X, X, VAR, VAR, FUNC, FUNC) :- number(X).
+validate(A, B, VAR, VAR, FUNC, FUNC) :- number(A), number(B), LHS is 1.0*A, RHS is 1.0*B, LHS == RHS.
 % validate a declared variable
 validate(X, OUTCOME, VAR, VAR, FUNC, FUNC) :- 
     get_assoc(X, VAR, OUTCOME), OUTCOME \== empty.
